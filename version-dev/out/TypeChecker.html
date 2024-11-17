@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: TypeChecker</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: TypeChecker</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>TypeChecker<span class="signature">()</span><span class="type-signature"></span></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    
+    <h4 class="name" id="TypeChecker"><span class="type-signature"></span>new TypeChecker<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Checks over every object with a class definition in this file for correct types. Call this constructor if you want every ScrambledIdle object to enforce static typing on its member variables. This is recommended for debugging but should definitely be disabled in release versions of your game as it can add quite a lot to load times.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="back.js.html">back.js</a>, <a href="back.js.html#line50">line 50</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="doTypeChecking"><span class="type-signature"></span>doTypeChecking<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    If true, the type checker will run on every game element to ensure type safety and help with debugging.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="back.js.html">back.js</a>, <a href="back.js.html#line38">line 38</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="periodicTypeChecks"><span class="type-signature"></span>periodicTypeChecks<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    If true, the type checker will run periodically to ensure type protection for objects. Doing this may be bad for performance and is not recommended for release versions of your game.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="back.js.html">back.js</a>, <a href="back.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="quickArrayCheck"><span class="type-signature"></span>quickArrayCheck<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    If true, only checks the first element of every array for being the wrong type. Helps with performance if you have a lot of objects with arrays.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="back.js.html">back.js</a>, <a href="back.js.html#line46">line 46</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AchievementGroup.html">AchievementGroup</a></li><li><a href="BuildingGroup.html">BuildingGroup</a></li><li><a href="Button.html">Button</a></li><li><a href="DisplayElement.html">DisplayElement</a></li><li><a href="DisplayGroup.html">DisplayGroup</a></li><li><a href="Label.html">Label</a></li><li><a href="Res.html">Res</a></li><li><a href="Terminal.html">Terminal</a></li><li><a href="TextArea.html">TextArea</a></li><li><a href="Tick.html">Tick</a></li><li><a href="Toast.html">Toast</a></li><li><a href="TypeChecker.html">TypeChecker</a></li><li><a href="UpgradeGroup.html">UpgradeGroup</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AchievementGroupO">AchievementGroupO</a></li><li><a href="global.html#BuildingGroupO">BuildingGroupO</a></li><li><a href="global.html#ButtonO">ButtonO</a></li><li><a href="global.html#DisplayGroupO">DisplayGroupO</a></li><li><a href="global.html#ResO">ResO</a></li><li><a href="global.html#TickO">TickO</a></li><li><a href="global.html#ToastO">ToastO</a></li><li><a href="global.html#UpgradeGroupO">UpgradeGroupO</a></li><li><a href="global.html#fromId">fromId</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#unpause">unpause</a></li><li><a href="global.html#updateBaseTick">updateBaseTick</a></li><li><a href="global.html#visualBaseTick">visualBaseTick</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Nov 14 2024 09:59:53 GMT-0700 (Mountain Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

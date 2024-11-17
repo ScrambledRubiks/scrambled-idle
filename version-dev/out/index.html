@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>ScrambledIdle</h1>
+<p>ScrambledIdle is a work-in-progress Javascript library designed to do the heavy work of creating an idle/incremental game.</p>
+<p>Picking up where projects like IdleJS or Continuum Engine left off, it seeks to be more heavyweight and complete than other options availible. It has many features uncommon elsewhere such as no-hassle saving, game pausing, metric tonnes of custom incremental-focused data structures, optional type safety, multiple syntax options, no-coding-experience-required tutorialization, and more.</p>
+<p>Its main design philosophy is to balance beginner-friendliness and ease of use with flexibility and lack of arbitrary limitation wherever possible. In addition, ScrambledIdle was built to be familiar to developers coming from <a href="https://orteil.dashnet.org/igm/">Orteil's Idle Game Maker</a>, with many features bearing resemblence to their IGM counterparts, while offering superior flexibility at the cost of slightly less simplicity in implementation. Despite some superficial similarites, ScrambledIdle's codebase is completely independent of IGM's(or, for that matter, any other game engine) and is very semantically different from how IGM operates.</p>
+<blockquote>
+<p>Note: While much of its codebase is in a working and near-final state, ScrambledIdle is currently unfinished and is missing some core features. Code and documentation may be incomplete, and very little QA testing has occured.</p>
+</blockquote>
+<h2>Planned Next-Revision changes</h2>
+<ul>
+<li>Reimplementing SaveManager to not have a jStorage dependancy</li>
+<li>Compete refactor of Building, Upgrade, and Achievement to inherit a Collectable superclass</li>
+<li>Logic rework of logAnim in Terminal to allow for nested divs within the message</li>
+<li>Rework of Tick so that functions can be added and removed in an object-oriented manner</li>
+</ul>
+<h2>Current Features</h2>
+<h3>TypeChecker</h3>
+<p>Optional type safety with any ScrambledIdle object, built into Javascript. No Typescript needed!</p>
+<h3>Tick</h3>
+<p>Easily add and manupulate functions to be called on an interval.</p>
+<h3>SaveManager</h3>
+<p>Save everything about your game without the hassle of manually defining every savable value. Unless you tell the game not to save and load something, it will be saved for a seamless player experience between page loads.</p>
+<h3>Pausing</h3>
+<p>The entire game can be paused and unpaused at will.</p>
+<h3>Label</h3>
+<p>Custom HTML divs with many helper methods. Has built-in support for easy icons and tooltips.</p>
+<h3>Button</h3>
+<p>Same as Label, custom easy-creation buttons with many helper methods. Also has built-in support for icons and tooltips.</p>
+<h3>DisplayGroup</h3>
+<p>Allows you to easily show and hide groups of ScrambledIdle assets that has show or hide methods.</p>
+<h3>Res</h3>
+<p>Easy control and manipulation of incremental-focused resources. Automatically interfaces with Labels, Buttons, Upgrades, Buildings, and Achievements to track resouce amounts and update the game without any tedious DOM work.</p>
+<h3>UpgradeGroup</h3>
+<p>Create unlockable upgrades consistently and easily that can be hidden until a criteria is reached, then can be purchased with both a resource or a hidden function. Both default and per-upgrade behavior can be fully custom-set.</p>
+<h3>BuildingGroup</h3>
+<p>Similar to UpgradeGroup, but with buildings that can be bought over and over opposed to the typically one-time purchase of an upgrade.</p>
+<h3>AchievementGroup</h3>
+<p>Wait in the background for a condition to be fulfilled, then give an upgrade for the player's good work! When an upgrade is gained, it automatically provides a toast for itself and adds itself to somewhere in your game. These can be added anywhere, but there's a special spot for them in the InfoMenu.</p>
+<h3>Toast</h3>
+<p>A small popup on the bottom or top of your game. Has many of the same features as Label(including optional tooltips and an icon) plus customizable appear and dissapear animations.</p>
+<h3>InfoMenu</h3>
+<p>A one-stop shop for many technical elements of your game. There's a place for a changelog, buttons for save control, and an optional place to hold Achievements.</p>
+<h3>TextArea</h3>
+<p>An easy-to-use input box for players to put text data into your game.</p>
+<h3>Terminal</h3>
+<p>A running log that you can print to in code or even have a user give data to with its own TextArea. Has many features to allow for fine control such as logging with or without a newline or logging animated for one character to be placed at a time.</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AchievementGroup.html">AchievementGroup</a></li><li><a href="BuildingGroup.html">BuildingGroup</a></li><li><a href="Button.html">Button</a></li><li><a href="DisplayElement.html">DisplayElement</a></li><li><a href="DisplayGroup.html">DisplayGroup</a></li><li><a href="Label.html">Label</a></li><li><a href="Res.html">Res</a></li><li><a href="Terminal.html">Terminal</a></li><li><a href="TextArea.html">TextArea</a></li><li><a href="Tick.html">Tick</a></li><li><a href="Toast.html">Toast</a></li><li><a href="TypeChecker.html">TypeChecker</a></li><li><a href="UpgradeGroup.html">UpgradeGroup</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AchievementGroupO">AchievementGroupO</a></li><li><a href="global.html#BuildingGroupO">BuildingGroupO</a></li><li><a href="global.html#ButtonO">ButtonO</a></li><li><a href="global.html#DisplayGroupO">DisplayGroupO</a></li><li><a href="global.html#ResO">ResO</a></li><li><a href="global.html#TickO">TickO</a></li><li><a href="global.html#ToastO">ToastO</a></li><li><a href="global.html#UpgradeGroupO">UpgradeGroupO</a></li><li><a href="global.html#fromId">fromId</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#unpause">unpause</a></li><li><a href="global.html#updateBaseTick">updateBaseTick</a></li><li><a href="global.html#visualBaseTick">visualBaseTick</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Nov 14 2024 09:59:53 GMT-0700 (Mountain Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

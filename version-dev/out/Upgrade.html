@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: Upgrade</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: Upgrade</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>Upgrade<span class="signature">(name, id, container, flavor, req, effect, defaultPurchaseBehavior, cost, upgradeCSS, currency)</span><span class="type-signature"></span></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    
+    <h4 class="name" id="Upgrade"><span class="type-signature"></span>new Upgrade<span class="signature">(name, id, container, flavor, req, effect, defaultPurchaseBehavior, cost, upgradeCSS, currency)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Creates an upgrade. You probably shouldn't call this directly, instead to create an upgrade call the u() method on an UpgradeGroup.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The upgrade's name.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The upgrade's id.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>container</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The container to add the upgrade to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>flavor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The upgrade's flavor text.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The requirement for the upgrade to be visible.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>effect</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The upgrade's effect when purchased.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>defaultPurchaseBehavior</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">A set of default behaviors when the upgrade is purchased, defined in each UpgradeGroup.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cost</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+|
+
+<span class="param-type">bigint</span>
+|
+
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">A number or a boolean function that dictates whether or not the upgrade can be purchased.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>upgradeCSS</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The upgrade's CSS class, default is none.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currency</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Res.html">Res</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">The currency to use for the upgrade's cost, if cost is a function this should be left null.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="back.js.html">back.js</a>, <a href="back.js.html#line1224">line 1224</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AchievementGroup.html">AchievementGroup</a></li><li><a href="Building.html">Building</a></li><li><a href="BuildingGroup.html">BuildingGroup</a></li><li><a href="Button.html">Button</a></li><li><a href="DisplayElement.html">DisplayElement</a></li><li><a href="DisplayGroup.html">DisplayGroup</a></li><li><a href="Label.html">Label</a></li><li><a href="Res.html">Res</a></li><li><a href="Terminal.html">Terminal</a></li><li><a href="TextArea.html">TextArea</a></li><li><a href="Tick.html">Tick</a></li><li><a href="Toast.html">Toast</a></li><li><a href="Upgrade.html">Upgrade</a></li><li><a href="UpgradeGroup.html">UpgradeGroup</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AchievementGroupO">AchievementGroupO</a></li><li><a href="global.html#BuildingGroupO">BuildingGroupO</a></li><li><a href="global.html#ButtonO">ButtonO</a></li><li><a href="global.html#DisplayGroupO">DisplayGroupO</a></li><li><a href="global.html#ResO">ResO</a></li><li><a href="global.html#TickO">TickO</a></li><li><a href="global.html#ToastO">ToastO</a></li><li><a href="global.html#UpgradeGroupO">UpgradeGroupO</a></li><li><a href="global.html#fromId">fromId</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#unpause">unpause</a></li><li><a href="global.html#updateBaseTick">updateBaseTick</a></li><li><a href="global.html#visualBaseTick">visualBaseTick</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Nov 13 2024 13:49:53 GMT-0700 (Mountain Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

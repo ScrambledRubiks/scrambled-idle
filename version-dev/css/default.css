@@ -1,0 +1,225 @@
+@keyframes toastFadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+}
+@keyframes toastFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes defaultClickDown {
+    0% {
+        opacity: 0.9
+    }
+    100% {
+        opacity: 0.7;
+    }
+
+}
+@keyframes defaultClickUp {
+    0% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+@keyframes tooltipFadeIn {
+  0% {
+    opacity: 0;
+    width:200px
+  }
+  100% {
+    opacity: 1;
+    width:300px;
+  }
+}
+@keyframes tooltipFadeOut {
+  0% {
+    visibility: visible;
+    opacity: 1;
+    width:300px;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+    width:200px;
+  }
+}
+.main {
+  background-color: #fff;
+}
+
+.defaultIconCSS {
+    display: inline;
+    width: 32px;
+    height: 32px;
+}
+
+.defaultInteriorButtonCSS {
+    padding: 10px;
+    border: 2px solid black;
+    cursor: pointer;
+    margin:5px;
+  }
+  .defaultInteriorButtonCSS:hover {
+    background-color: rgba(255,255,255,0.9);
+    
+  }
+  .defaultExteriorButtonCSS {
+    /* padding: 3px; */
+    padding:1px;
+    display: inline-block;
+  }
+
+.defaultMouseDown {
+    animation: defaultClickDown 0.2s 0s 1 normal forwards;
+}
+.defaultMouseUp {
+    animation: defaultClickUp 0.2s ease 0s 1 normal forwards;
+}
+
+.infoText {
+    color: white;
+    overflow-y: scroll;
+    position: absolute;
+    bottom: 10px;
+    top: 60px;
+    
+    
+}
+.showInfo {
+    position: absolute;
+    background-color: rgba(0,0,0,0.7);
+    border: 2px solid gray;
+    border-radius: 2px;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    right:10px;
+    bottom:10px;
+}
+.infoBigBackground {
+    cursor:default;
+    position: absolute;
+    z-index:0;
+    background-color: rgba(0,0,0,0.7);
+    left:0px;
+    right:0px;
+    bottom:0px;
+    top:0px;
+}
+.infoBigBackground:hover {
+    position: absolute;
+    z-index:0;
+    background-color: rgba(0,0,0,0.7);
+    left:0px;
+    right:0px;
+    bottom:0px;
+    top:0px;
+}
+.infoBackground {
+    position: absolute;
+    z-index:1;
+    background-color: rgba(0,0,0,0.7);
+    left:20%;
+    right:40%;
+    top:20%;
+    bottom:20%;
+    padding:10px;
+}
+.achievementBackground {
+    position: absolute;
+    z-index:2;
+    background-color: rgba(1,0,0,0.7);
+    color:white;
+    left:65%;
+    right:20%;
+    top:20%;
+    bottom:20%;
+    padding:10px;
+}
+.infoClose {
+    position: absolute;
+    background-color: rgba(0,0,0,0.7);
+    border: 2px solid gray;
+    border-radius: 2px;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    right:0px;
+    top:0px;
+    color:white;
+}
+
+.defaultTerminalInputCSS {
+  position:absolute;
+  width:100%;
+}
+.defaultTerminalOutputCSS {
+  overflow-y: hidden;
+  
+}
+
+.defaultTerminalMessageCSS {
+  display:inline;
+}
+
+/*Thank you to W3Schools for the base for this tooltip CSS*/
+
+  .tooltip {
+    visibility: hidden;
+    position: absolute;
+    width: 300px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  .tooltipContainer {
+    position: absolute;
+    top: 0%;
+  }
+
+  .tooltipHover {
+    animation: tooltipFadeIn .2s ease 1;
+  }
+  .tooltipOut {
+    animation: tooltipFadeOut .2s ease 1;
+  }
+
+  .toastCSS {
+    border: 2px solid black;
+    z-index: 9999;
+    background-color: #fff;
+  }
+
+  .toastCSSBottom {
+    position: absolute;
+    bottom: 10px;
+    left: 37%;
+    right: 37%;
+  }
+  .toastCSSTop {
+    position: absolute;
+    top: 10px;
+    left: 37%;
+    right: 37%;
+  }
