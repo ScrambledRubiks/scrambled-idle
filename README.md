@@ -12,6 +12,7 @@ Its main design philosophy is to balance beginner-friendliness and ease of use w
 - Compete refactor of Building, Upgrade, and Achievement to inherit a Collectable superclass
 - Logic rework of logAnim in Terminal to allow for nested divs within the message
 - Rework of Tick so that functions can be added and removed in an object-oriented manner
+- Use Github Pages to properly host all documentation
 
 ## Current Features
 ### TypeChecker
