@@ -4,7 +4,7 @@
  */
 console.log("ScrambledIdle v. 0.1, created by Xander Gilson.");
 
-var everything = [];
+var everything = {};
 
 class OuterSetup {
     /**
@@ -19,17 +19,7 @@ class OuterSetup {
     static gameElementsGlobalScope = true;
 }
 if(OuterSetup.debugPrintStatements) console.log("000 debugPrintStatements set to true");
-/**
- * Helper function to prevent some weirdness within function args and the like. Nothing uses it at the moment but it's here in case you need a hacky solution to a weird problem.
- * @param {string} id 
- */
-function fromId(id) {
-    everything.forEach(element => {
-       if(element.id==id) {
-        return element;
-       } 
-    });
-}
+
 
 class TypeChecker {
     /**
@@ -45,7 +35,7 @@ class TypeChecker {
      */
     static quickArrayCheck=false;
     /**
-     * Checks over every object with a class definition in this file for correct types. Call this constructor if you want every ScrambledIdle object to enforce static typing on its member variables. This is recommended for debugging but should definitely be disabled in release versions of your game as it can add quite a lot to load times.
+     * Checks over every object with a class definition in this file for correct types. Call this constructor if you want every ScrambledIdle object to enforce static typing on its member variables. This is recommended for debugging but should definitely be disabled in release versions of your game as it can add to load times.
      */
     constructor() {
         this.doTheThings();
@@ -75,104 +65,109 @@ class TypeChecker {
                 }
                 if(className!="") {//test
                     let checkedClass = eval(className);
-                    // console.log(checkedClass.varsTypes)
+                    // console.log(checkedClass)
                     let varsTypes = checkedClass.varsTypes;
                     let varsKeys = ["none"];
                     try {
                     varsKeys = Object.keys(varsTypes);
                     }catch(e) {
                         console.log(e);
-                        throw new Error(`when type-checking class ${className}, class does not have a static varsKeys variable.`);
+                        throw new Error(`when type-checking class ${className}, class does not have a static varsTypes variable.`);
                     }
-                    everything.forEach(obj => {
-                        if(obj.constructor.name==className) {
-                            for (var j = 0; j<varsKeys.length; j++) {
-                                let key = varsKeys[j];
-                                let type = varsTypes[key];
-                                if(type.includes("|")) {
-                                    type = type.split("|")
-                                    let errorCount = 0;
-                                    type.forEach(t => {
-                                        if(TypeChecker.isPrimitive(t)) {
-                                            if(typeof obj[key] != t) {
-                                                errorCount++;
-                                            }
-                                            if(errorCount == type.length) {
-                                                console.log(obj);
-                                                throw new TypeError(`on object ${obj.id},  property ${key} should be of type ${TypeChecker.arrayEnglishify(type)} but is instead ${TypeChecker.aOrAn(typeof obj[key]) ? "an":"a"} ${typeof obj[key]} with value ${obj[key]}`);
-                                            }
-                                        }
-                                    });
-                                    if(obj[key] instanceof Array) {
-                                        obj[key].forEach(elem => {
-                                            type.forEach(t => {
-                                                if(typeof elem == "object") {
-                                                    if(elem.constructor.name!=t) {
-                                                        errorCount++;
-                                                    }
-                                                } else if(typeof elem != t.split("[]")[0]) {
+                    Object.keys(everything).forEach(objKey => {
+                        try {
+                            let obj = everything[objKey];
+                            if(obj.constructor.name==className) {
+                                for (var j = 0; j<varsKeys.length; j++) {
+                                    let key = varsKeys[j];
+                                    let type = varsTypes[key];
+                                    if(type.includes("|")) {//multi-type
+                                        type = type.split("|")
+                                        let errorCount = 0;
+                                        type.forEach(t => {
+                                            if(TypeChecker.isPrimitive(t)) {//multi-type primitive
+                                                if(typeof obj[key] != t) {
                                                     errorCount++;
                                                 }
-                                            });
-                                            if(errorCount>=type.length) {
-                                                throw new TypeError(`on object ${obj.id}, property ${key} should be an array of ${TypeChecker.arrayEnglishify(type)} but instead contains an element of type ${typeof elem} with value ${elem}`);
-                                            }
+                                                if(errorCount == type.length) {
+                                                    console.log(obj);
+                                                    throw new TypeError(`on object ${obj.id},  property ${key} should be of type ${TypeChecker.arrayEnglishify(type)} but is instead ${TypeChecker.aOrAn(typeof obj[key]) ? "an":"a"} ${typeof obj[key]} with value ${obj[key]}`);
+                                                }
+                                            } //BUG there is no multi-type object case
                                         });
-                                    }
-                                } else {
-                                    if(varsTypes[key].includes("[]")) {
-                                        let arrayType = varsTypes[key].split("[]")[0]
-                                        if(!(obj[key] instanceof Array)) {
-                                            if(!aOrAn(typeof obj[key])) {
-                                                throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead a ${typeof obj[key]} with the value ${obj[key]}.`);
-                                            } else {
-                                                throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead an ${typeof obj[key]} with the value ${obj[key]}.`);
-                                            }
-                                        } else if(this.quickArrayCheck) {
-                                                if(TypeChecker.isPrimitive(arrayType)) {
-                                                    if(typeof obj[key][0] != arrayType) {
-                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${typeof obj[key][0]} with the value ${obj[key][0]}.`);
+                                        if(obj[key] instanceof Array) { //multi-type array
+                                            obj[key].forEach(elem => {
+                                                type.forEach(t => {
+                                                    if(typeof elem == "object") {
+                                                        if(elem.constructor.name!=t) {
+                                                            errorCount++;
+                                                        }
+                                                    } else if(typeof elem != t.split("[]")[0]) {
+                                                        errorCount++;
                                                     }
-                                                } else if(!(obj[key][0] instanceof eval(arrayType))) {
-                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${obj[key][0].constructor.name} with the value ${obj[key][0]}.`);
+                                                });
+                                                if(errorCount>=type.length) { //multi-type array, is array with problem element
+                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be an array of ${TypeChecker.arrayEnglishify(type)} but instead contains an element of type ${typeof elem} with value ${elem}`);
                                                 }
-                                        } else {
-                                            for(let k=0; k < obj[key].length; k++) {
-                                                if(TypeChecker.isPrimitive(arrayType)) {
-                                                    if(typeof obj[key][k] != arrayType) {
-                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${typeof obj[key][k]} with the value ${obj[key][k]}.`);
-                                                    }
-                                                } else {
-                                                    if(!(obj[key][k] instanceof eval(arrayType))) {
-                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${obj[key][k].constructor.name} with the value ${obj[key][k]}.`);
-                                                    }
-                                                }
-                                            }
+                                            });
                                         }
-                                        
-                                    } else {
-                                        if(TypeChecker.isPrimitive(type)) {
-                                            if(typeof obj[key]!=type) {
-                                                if(!TypeChecker.aOrAn(typeof obj[key])) {
-                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is a ${typeof obj[key]}with the value ${obj[key]}.`);
+                                    } else { //single-type
+                                        if(varsTypes[key].includes("[]")) {//single-type arrray
+                                            let arrayType = varsTypes[key].split("[]")[0]
+                                            if(!(obj[key] instanceof Array)) { //single-type array, not array
+                                                if(!aOrAn(typeof obj[key])) {
+                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead a ${typeof obj[key]} with the value ${obj[key]}.`);
                                                 } else {
-                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is an ${typeof obj[key]} with the value ${obj[key]}.`);
+                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead an ${typeof obj[key]} with the value ${obj[key]}.`);
+                                                }
+                                            } else if(this.quickArrayCheck) {
+                                                    if(TypeChecker.isPrimitive(arrayType)) {
+                                                        if(typeof obj[key][0] != arrayType) {
+                                                            throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${typeof obj[key][0]} with the value ${obj[key][0]}.`);
+                                                        }
+                                                    } else if(!(obj[key][0] instanceof eval(arrayType))) {
+                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${obj[key][0].constructor.name} with the value ${obj[key][0]}.`);
+                                                    }
+                                            } else { //single-type array, is array with problem element
+                                                for(let k=0; k < obj[key].length; k++) {
+                                                    if(TypeChecker.isPrimitive(arrayType)) {
+                                                        if(typeof obj[key][k] != arrayType) {
+                                                            throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${typeof obj[key][k]} with the value ${obj[key][k]}.`);
+                                                        }
+                                                    } else {
+                                                        if(!(obj[key][k] instanceof eval(arrayType))) {
+                                                            throw new TypeError(`on object ${obj.id}, property ${key} should be an array of type ${arrayType} but is instead contains an element of type ${obj[key][k].constructor.name} with the value ${obj[key][k]}.`);
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        } else {
-                                            console.log(obj, key);
-                                            if(obj[key].constructor.name!=type) {
-                                                console.log(obj[key].className,'\n', type);
-                                                if(TypeChecker.aOrAn(typeof obj[key])) {
-                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is a ${obj[key].constructor.name} with the value ${obj[key]}.`);
-                                                } else {
-                                                    throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is an ${obj[key].constructor.name} with the value ${obj[key]}.`);
+                                            
+                                        } else { //single-type non-array
+                                            if(TypeChecker.isPrimitive(type)) {//single-type non-array primitive
+                                                if(typeof obj[key]!=type) {
+                                                    if(!TypeChecker.aOrAn(typeof obj[key])) {
+                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is a ${typeof obj[key]}with the value ${obj[key]}.`);
+                                                    } else {
+                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is an ${typeof obj[key]} with the value ${obj[key]}.`);
+                                                    }
+                                                }
+                                            } else { //single-type non-array object
+                                                if(obj[key].constructor.name!=type) { //BUG if a key is supposed to be an object but is instead null we error out
+                                                    if(TypeChecker.aOrAn(typeof obj[key])) {
+                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is a ${obj[key].constructor.name} with the value ${obj[key]}.`);
+                                                    } else {
+                                                        throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is an ${obj[key].constructor.name} with the value ${obj[key]}.`);
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
+                        } catch(e) {
+                            console.error("Something has gone wrong with TypeChecker on object \""+objKey+"\".");
+                            console.log(everything[objKey]);
+                            console.error(e);
                         }
                     });
                 }
@@ -240,7 +235,12 @@ class Tick {
     constructor(id, OnTick) {
         this.onTick = OnTick;
         this.id=id;
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
         Tick.ticks.push(this);
     }
     /**
@@ -348,8 +348,8 @@ var gameState = {};
  */
 function pause() {
     if(OuterSetup.debugPrintStatements) console.log("PS01 Pausing Game...");
-    for(let i=0;i<everything.length; i++){
-        let saveObj = everything[i];
+    for(let i=0;i<Object.keys(everything).length; i++){
+        let saveObj = everything[Object.keys(everything)[i]];
         let saveValues = Object.keys(saveObj);
         saveValues.forEach(key => {
             if(SaveManager.savableKeys.includes(key) &&  eval("saveObj."+key)!=null && !SaveManager.doNotSaveList.includes(saveObj.id)){
@@ -363,13 +363,13 @@ function pause() {
     }
     isPaused = true;
     pauseBuffer = setInterval(function() {
-        everything.forEach(obj => {
+        Object.keys(everything).forEach(objKey => {
+            let obj = everything[objKey];
             Object.keys(obj).forEach(key => {
                 if(SaveManager.savableKeys.includes(key) && !SaveManager.doNotSaveList.includes(obj.id)) {
                     try {
                         eval("obj."+key+ "= gameState["+obj.id+"_"+key+"]");
                     } catch(e) {
-                        //gotta love javascript's lack of static typing
                         if(!(e instanceof ReferenceError)) {
                             console.log("advancement made: how did we get here?")
                             throw e;
@@ -403,11 +403,11 @@ var updateBaseTick = new Tick("updateBaseTick",[function(){}]);
 
 var fastBaseTick = new Tick("fastBaseTick", ()=>{});
 
-class SaveManager { //currently very broken, in the middle of a refactor
+class SaveManager {
     static varsTypes = {
     }
     /* If any new savable values are needed, add them here.*/ 
-    static savableKeys = ["amount", "a", "shown", "innerHTML", "tooltipHTML", "disabled", "css", "upgradeCSS", "cost", "owned", "yield", "max"];
+    static savableKeys = ["amount", "a", "shown", "innerHTML", "tooltipHTML", "disabled", "css", "upgradeCSS", "cost", "owned", "yield", "max", "container"];
 
     static doNotSaveList = [];
     /**
@@ -422,8 +422,9 @@ class SaveManager { //currently very broken, in the middle of a refactor
         if(this.consoleSaveMessage) console.log("Saving game to localStorage...");
 
         let saved = {};
-        for(let i = 0; i < everything.length; i++) {
-            const thing = everything[i];
+        for(let i = 0; i < Object.keys(everything).length; i++) {
+            const thingKey = Object.keys(everything)[i];
+            const thing = everything[thingKey];
             if(!this.doNotSaveList.includes(thing.id)) {
                 let properties = {};
                 Object.keys(thing).forEach((key)=>{ 
@@ -444,13 +445,27 @@ class SaveManager { //currently very broken, in the middle of a refactor
      * NOTE: If you are having random weirdness with things not updating when you change the code, clear your save and reload the game as loading will temporarily undo any change you made that affects a savable key.
      */
     static load() {
+        console.log(everything)
         if(localStorage.save!=undefined) {
             if(this.consoleSaveMessage) console.log("Loading game from localStorage...");
             if(OuterSetup.debugPrintStatements) console.log("SV02 Loading game from localStorage...");
             let i=0;
-            
+            let save = JSON.parse(localStorage.save);
+            console.log(save)
+            for(;i<Object.keys(save).length;i++) {
+                let savedKey = Object.keys(save)[i];
+                let savedObj = save[savedKey];
+                try {
+                    Object.keys(savedObj).forEach((key) => {
+                        everything[savedKey][key] = savedObj[key];
+                    });
+                } catch(e) {
+                    console.warn("Saved key \""+savedKey+"\" not found in current version of game.");
+                }
+            }
             if(this.consoleSaveMessage) console.log("Loaded "+i+" key/value pairs.");
             if(OuterSetup.debugPrintStatements) console.log("SV02 Loaded "+i+" key/value pairs.");
+            
     }
     }
     /**
@@ -515,7 +530,7 @@ class DisplayElement {
     constructor(id, container, innerHTML, css, elementType, shown=true, tooltipHTML="") {
 
         if (this.constructor == DisplayElement) {
-            throw new Error("DisplayElement is an abstract and should not be instantiated on its own.");
+            throw new Error("Error on DisplayElement "+id+", DisplayElement is an abstract and should not be instantiated on its own.");
           }
           
         this.id=id;
@@ -656,7 +671,6 @@ class DisplayElement {
                     //checks if the tooltip is clipping off the bottom of the screen
                     if((elementCoords.y+tooltip.getClientRects()[0].height)>window.innerHeight) {
                         tooltip.style.top = (elementCoords.y-tooltip.getClientRects()[0].height+elementCoords.height)+"px";
-                        console.log(tooltip.style.top)
                     }
                     tooltip.classList.add("tooltipHover");
                     
@@ -856,7 +870,12 @@ class Res {
                 self.add(self.yield/10);
             }]);
         }
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
     /**
      * Adds some amount to the resource.
@@ -983,7 +1002,12 @@ class Label extends DisplayElement {
         if(shown) {
             this.construct(true, "called in constructor");
         }
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
     /**
      * Constructs the label. You should probably call show() instead of this.
@@ -1093,7 +1117,12 @@ class Button extends DisplayElement {
         if(disabled) {
             this.disable();
         }
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
     /**
      * Constructs a button. You should probably call show() instead of this.
@@ -1152,9 +1181,7 @@ class Button extends DisplayElement {
         if(OuterSetup.debugPrintStatements) console.log("BTO4 enabling button '"+ this.id+"'");
         this.get.disabled = false;
     }
-    
-}
-/**
+    /**
  * Creates a Button based on an object with the parameters of Button.
  * @param {object} obj The object to be constructed into a Res
  * @ Parameters for the object:
@@ -1171,31 +1198,33 @@ class Button extends DisplayElement {
  * @param {string} resSuffix (optional) A string to add after the resource's amount, default is none.
  * 
  */
-function ButtonO(obj) {
-    let disp = new Button(obj.id, obj.container, obj.innerHTML, obj.css, obj.actions, obj.tooltipHTML, obj.shown, obj.disabled);
-    if(obj.css == null) {
-        disp.css = "";
-    }
-    if(obj.tooltipHTML == null) {
-        disp.tooltipHTML = "";
-        disp.removeTooltip();
-    }
-    if(obj.shown == null) {
-        disp.show();
-    }
-    if(obj.icon != null) {
-        disp.icon(obj.icon);
-    }
-    if(obj.resFormat != null && resSuffix == null) {
-        disp.resFormat(obj.resFormat)
-    } else if( obj.resFormat != null && resSuffix == null) {
-        disp.resFormat(obj.resFormat, obj.resSuffix);
-    }
-    if(obj.disabled == null) {
-        disp.disabled = false;
-    }
-    return disp;
-} 
+    static O(obj) {
+        let disp = new Button(obj.id, obj.container, obj.innerHTML, obj.css, obj.actions, obj.tooltipHTML, obj.shown, obj.disabled);
+        if(obj.css == null) {
+            disp.css = "";
+        }
+        if(obj.tooltipHTML == null) {
+            disp.tooltipHTML = "";
+            disp.removeTooltip();
+        }
+        if(obj.shown == null) {
+            disp.show();
+        }
+        if(obj.icon != null) {
+            disp.icon(obj.icon);
+        }
+        if(obj.resFormat != null && resSuffix == null) {
+            disp.resFormat(obj.resFormat)
+        } else if( obj.resFormat != null && resSuffix == null) {
+            disp.resFormat(obj.resFormat, obj.resSuffix);
+        }
+        if(obj.disabled == null) {
+            disp.disabled = false;
+        }
+        return disp;
+    } 
+}
+
 class Upgrade extends Button {
     name; flavor; req; cost; effect; defaultPurchaseBehavior; currency; upgradeCSS; owned=false;
     static varsTypes = {
@@ -1285,7 +1314,12 @@ class Upgrade extends Button {
                 }
         }
         }]);
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
 }
 class UpgradeGroup extends Label {
@@ -1314,7 +1348,12 @@ class UpgradeGroup extends Label {
         this.upgradesData = [];
         this.defaultPurchaseBehavior = defaultPurchaseBehavior;
         this.id = id;
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
     /**
      * Creates an upgrade in the UpgradeGroup.
@@ -1388,6 +1427,35 @@ class UpgradeGroup extends Label {
         }
     }
     
+}
+
+class Collectable extends DisplayElement {
+    req;effect;owned;
+    constructor(id,container,innerHTML,css,elementType,shown,tooltipHTML,req,effect,owned) {
+        super(id,container,innerHTML,css,elementType,shown,tooltipHTML);
+        this.req=req;
+        this.owned=owned;
+    }
+}
+class CollectableGroup extends Label {
+    collectableCSS;defaultEarnBehavior;
+    constructor(id,container,containerCSS,collectableCSS,defaultEarnBehavior) {
+        super(id,container,"",containerCSS);
+        if(this.constructor == CollectableGroup) {
+            throw new Error("Error on CollectableGroup " + id + ", CollectableGroup is an abstract and should not be instantiated on its own.");
+        }
+        this.collectableCSS = collectableCSS;
+        this.defaultEarnBehavior = defaultEarnBehavior;
+    }
+    c(elementType, name,id,tooltip,req,effect) {
+        let collectable = new Collectable(id,this.id,name,this.collectableCSS,elementType,req(),tooltip,req,effect,false);
+        Object.defineProperty(this, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:collectable,
+        });
+    }
 }
 /**
  * Creates a new UpgradeGroup.
@@ -1487,6 +1555,7 @@ class Building extends Button{
         this.max=amount;
         this.currency=currency;
         visualBaseTick.addOnTick([function() {
+            if(self.req()) self.show();
             self.a = self.amount;
             if(self.a>self.max) self.max=self.a;
             //TODO make work with icons
@@ -1505,7 +1574,12 @@ class Building extends Button{
                 self.get.innerHTML = name+": "+self.amount;
                 if(self.hasIcon) self.icon();
         }]);
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
 }
 
@@ -1532,7 +1606,12 @@ class BuildingGroup extends Label {
         this.buildingCSS = buildingCSS;
         this.buildingCostIncrease=buildingCostIncrease;
         this.defaultPurchaseBehavior = defaultPurchaseBehavior;
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
         /**
      * Creates a building as a member of the BuildingGroup.
@@ -1726,7 +1805,12 @@ class Achievement extends Label{
 
             }
         }]);
-        everything.push(this);
+        Object.defineProperty(everything, id, {
+            configurable:true,
+            writable:true,
+            enumerable:true,
+            value:this,
+        });
     }
     grant() {
         if(OuterSetup.debugPrintStatements) console.log("AC01 Granting achievement "+this.id);
@@ -2074,7 +2158,7 @@ class Terminal extends Label {
 }
 
 
-export {OuterSetup,TypeChecker,SaveManager,DisplayElement,DisplayGroup,Res,ResO,Tick,TickO,Label,Button,ButtonO,Upgrade,UpgradeGroup,UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,ToastO,Achievement,AchievementGroup,AchievementGroupO,InfoMenu, TextArea, TextAreaO, Terminal, visualBaseTick, updateBaseTick};
+export {OuterSetup,TypeChecker,SaveManager,DisplayElement,DisplayGroup,Res,ResO,Tick,TickO,Label,Button,Upgrade,UpgradeGroup,UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,ToastO,Achievement,AchievementGroup,AchievementGroupO,InfoMenu, TextArea, TextAreaO, Terminal, visualBaseTick, updateBaseTick};
 
 visualBaseTick.start(100);
 updateBaseTick.start(100);

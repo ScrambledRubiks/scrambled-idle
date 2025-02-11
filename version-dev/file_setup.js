@@ -1,3 +1,3 @@
 export default {
-    "gameJSName": "game-taskatron-4.js",
+    "gameJSName": "game-x-squared.js",
 }

@@ -1,0 +1,268 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Noto%20Serif&display=swap');
+
+@keyframes boing {
+  0% {transform: scale(1)}
+  50% {transform: scale(1.1)}
+  100% {transform: scale(1)}
+}
+
+@keyframes titleFadeIn {
+  0% {transform: scale(1.4) translateY(100px)}
+  50% {transform: scale(1.4) translateY(100px)}
+  100% {transform: scale(1) translateY(0px)}
+}
+
+.testClass {
+    color:red;
+  }
+  .cTermsBox {
+    border: 2px solid black;
+    position: absolute;
+    right:0%;
+    left:70%;
+    bottom:50%;
+    top:10%;
+    padding: 5px;
+    padding-right: 10px;
+  }
+  .cTermsLabel {
+    border: 2px solid black;
+    position: absolute;
+    right:0%;
+    left:70%;
+    bottom:90%;
+    top:5%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cTerms {
+    width:100%;
+    font-family: 'Noto Serif';
+    font-style: normal;
+    font-weight: 400;
+
+  }
+  .cUpgradesBox {
+    position: absolute;
+    top: 55%;
+    bottom: 0%;
+    left: 70%;
+    right: 0%;
+    border: 2px solid black;
+    padding: 5px;
+    padding-right: 10px;
+  }
+  .cUpgradesLabel {
+    border: 2px solid black;
+    position: absolute;
+    right: 0%;
+    left: 70%;
+    bottom: 45%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cUpgrades {
+    width:100%;
+    font-family: 'Noto Serif';
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  .equation {
+    border: 3px dashed #000;
+    background-color: #FFFFFF;
+    position: absolute;
+    font-size: 20px;
+    top:9px;
+    padding: 3px;
+    right: 2px;
+    left:70%;
+    text-align: center;
+}
+
+.classBoing {
+  animation-name: boing;
+  animation-duration: 0.5s;
+}
+
+  .term1 {
+    position:fixed;
+    background-color:rgb(25, 25, 29);
+    color:white;
+    right:50%;
+    
+    left:5px;
+    bottom: 5px;
+    font-size: 20px;
+  }
+
+  body {
+    /* background-color:rgb(15, 15, 29); */
+    font-family: 'Noto Serif';
+    font-style: normal;
+    font-weight: 400;
+
+  }
+  .main {
+    display:flex;
+    justify-content: center;
+    width:70%;
+    flex-wrap: wrap;
+  }
+
+  .cXDisp {
+    border: 2px solid;
+    width:fit-content;
+    height: fit-content;
+    margin: 5px;
+    background-color: rgb(255 255 255 / 70%);
+    padding:7px;
+    font-size: 20px;
+  }
+  .cYDisp {
+    border: 2px solid;
+    width:fit-content;
+    height: fit-content;
+    margin: 5px;
+    left: 400px;
+    background-color: rgb(255 255 255 / 70%);
+    padding:7px;
+    font-size: 20px;
+  }
+  .cResearchDisp {
+    color:#086d00;
+    border: 5px #086d00 double;
+    background-color: rgb(255 255 255 / 70%);
+    padding:7px;
+    margin: 5px;
+    margin-top: 10px;
+    font-size: 20px;
+    transform: scale(1.2);
+  }
+  .statPun {
+    position: absolute;
+    bottom:5px;
+    left:5px;
+    font-family: 'Noto Serif';
+    font-style: normal;
+    font-weight: 400;
+    font-size:20px;
+    padding:3px;
+    background: rgba(255,255,255,0.7);
+  }
+
+  .linebreak {
+    width:100%;
+  }
+
+  .cBigButton {
+    position: absolute;
+    top:30%;
+    right:40%;
+    background: none;
+    border: 0px;
+    transform:scale(1);
+    transition:transform .1s
+  }
+  .cBigButton:hover {
+    background: none;
+    transition: 
+      transform .1s;
+      transform: scale(1.05);
+  }
+  .cBigButton:active {
+    transform:scale(1);
+    transition:transform .1s;
+  }
+  .out1 {
+    background-color:rgb(15, 15, 29 / 0%);
+    top:30%;
+    left:0%;
+    right:50%;
+    color:white;
+    position:fixed;
+    display:flex;
+    bottom:110px;
+    font-family: "Inconsolata", monospace;
+    
+  }
+  .out1 span {
+    align-self:flex-end;
+  }
+
+  .cmdButtons {
+    
+    padding:5px;
+    font-family: "Inconsolata", monospace;
+    color:white;
+    background-color:rgb(15, 15, 29);
+    border: 1px rgba(0,0,0,0);
+    border-style:solid;
+    font-size:20px;
+    display:flex;
+  }
+  .cmdButtons:hover {
+    border: 1px white;
+    border-style: solid;
+    background-color:rgb(15, 15, 29);
+  }
+  .buttonsCont {
+    bottom:60px;
+    position:absolute;
+    right:30%;
+    left:0%;
+    display: flex;
+    border:4px rgb(11, 9, 23) solid;
+  }
+  .researchDisp {
+    font-family: "Inconsolata", monospace;
+    color:white;
+    color:green;
+    border: 3px green double;
+    position:absolute;
+    left: 72%;
+    padding:5px;
+    font-size: 20px;
+  }
+
+  .circuitImage {
+    width:200px;
+    height:200px;
+    position:absolute;
+    right:30px;
+    bottom:30px;
+
+  }
+
+  .cpuSlot1 {
+    position: absolute;
+    right: 101px;
+    bottom: 90px;
+  }
+  .cpuIcon {
+    width:72px;
+    height:72px;
+  }
+
+  .taskatronTitle {
+    color:white;
+    background-color: rgb(15, 15, 29);
+    font-size: 4px;
+    position: absolute;
+    
+  }
+  .taskTitleCont {
+    position: absolute;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    vertical-align: top;
+    justify-content: center;
+  }
+  .classTitleFadeIn {
+    animation: titleFadeIn 3s linear;
+  }

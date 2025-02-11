@@ -1,4 +1,4 @@
-import {OuterSetup,TypeChecker,SaveManager,DisplayElement,Res,ResO,Tick,TickO,Label,LabelO,Button,ButtonO,Upgrade,UpgradeGroup,UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,ToastO,Achievement,AchievementGroup,AchievementGroupO,InfoMenu, TextArea, TextAreaO, Terminal, visualBaseTick, updateBaseTick} from "./back/back.js";
+import {OuterSetup,TypeChecker,SaveManager,DisplayElement,Res,ResO,Tick,Label,Button,Upgrade,UpgradeGroup, UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,Achievement,AchievementGroup,InfoMenu, TextArea,  Terminal, visualBaseTick, updateBaseTick} from "./back/back.js";
 export {Game};
 
 /* Setup Constants */ {
@@ -46,6 +46,7 @@ export {Game};
 
 }
 class Game {
+    x;
 GameElements() {
     let info = new InfoMenu("infoContainer", `
         You're playing X Squared by ScrambledRubiks, a minimalist idle game about research and math.<br>
@@ -139,7 +140,8 @@ GameElements() {
 
 
 //Ticks
-    let autosaveTick = new Tick("autosaveTick",[function() {SaveManager.save()}],);
+    let autosaveTick = new Tick("autosaveTick",function() {SaveManager.save()});
+    autosaveTick.interval = 0;
     let graphUpdateTick = new Tick("graphUpdateTick", () => {
         calculator.setMathBounds({
             left:-1,
@@ -163,6 +165,7 @@ GameElements() {
         id:"x",
         initVal:25
     });
+    this.x = x;
     let y = new Res("y", "y");
     let researchFunds = new Res("dollars", "researchFunds");
 
@@ -207,7 +210,7 @@ GameElements() {
         `;
     });
     let mainArea = new Label("mainArea", "main", "", "main");
-    let xDisp = LabelO({
+    let xDisp = Label.O({
         id:"xDisp",
         container:"mainArea",
         innerHTML: "x: "+x.a,
@@ -229,7 +232,7 @@ GameElements() {
 
 
 
-    let bigButton = ButtonO({
+    let bigButton = Button.O({
         id:"bigButton",
         container:"mainArea",
         innerHTML:"<img src=\"https://file.garden/Y36WipOdi23QPRqg/x2-button-3.png\">",
@@ -246,7 +249,7 @@ GameElements() {
             });
         }
     });
-
+    this.y = y;
     let termsLabel = new Label("termsLabel", "main", "Terms","cTermsLabel");    
     SaveManager.doNotSaveList.push("termsLabel");
     let terms = new BuildingGroup("terms", "main","cTermsBox","cTerms", 2.5, function() {
@@ -260,16 +263,16 @@ GameElements() {
         }, 500);
     });
     let statPun = new Button("statPun", "main", "(ᴸᵛᴸ 0) Center for Statistics Pun Recovery", "statPun", ()=>{
-        if(rStatFacilityPrice.a>=y.a && rStatFacilityLevel.a<59) {
-            x=rOptimization
-            rStatFacilityPrice*=1.7;
-            rStatFacilityLevel++;
-            rStatFacilityTime-=60;
+        if(rStatFacilityPrice.a<=y.a && rStatFacilityLevel.a<59) {
+            x.a=rOptimization.a
+            rStatFacilityPrice.a*=1.7;
+            rStatFacilityLevel.a++;
+            rStatFacilityTime.a-=60;
         }
-    }, "", true);
+    }, "", false);
     visualBaseTick.addOnTick(()=>{
         statPun.innerHTML = `(ᴸᵛᴸ ${rStatFacilityLevel.a}) Center for Statistics Pun Recovery`;
-        statPun.tooltip=`<b>Level ${rStatFacilityLevel.a} / 59</b><br>Generates Research Funds over time.<br>Current generation rate: 1 dollar every <b>${60-rStatFacilityLevel.a}</b> minutes.<br>Time until next dollar: ${Math.ceil(rStatFacilityTime.a/60)} minutes.<br><b>${y>=rStatFacilityPrice.a&&rStatFacilityLevel<59 ? `<div style="color:#126F00;">Click to level up for ${rStatFacilityPrice.a} y</div>`:`<div style="color:#9C0000;">Next Level: ${rStatFacilityPrice.a} y</div>`}`
+        statPun.tooltip=`<b>Level ${rStatFacilityLevel.a} / 59</b><br>Generates Research Funds over time.<br>Current generation rate: 1 dollar every <b>${60-rStatFacilityLevel.a}</b> minutes.<br>Time until next dollar: ${Math.ceil(rStatFacilityTime.a/60)} minutes.<br><b>${y.a>=rStatFacilityPrice.a&&rStatFacilityLevel.a<59 ? `<div style="color:#126F00;">Click to level up for ${rStatFacilityPrice.a} y</div>`:`<div style="color:#9C0000;">Next Level: ${rStatFacilityPrice.a} y</div>`}`
     });
 
 //Buildings
@@ -333,7 +336,7 @@ GameElements() {
         optiCount++;
         upgrades.u(`🖫 ${called}`, "opti"+optiCount, `<b>🖫 Optimization ${numeral}</b><br>When a term or upgrade that costs y is purchased, x goes down to <b>${gives+rOptimization.a}</b>.`, ()=>{return eval(requirement)}, ()=>{
             rOptimization.a+=gives;
-        });
+        }, price);
     }
     let paperCount = 0;
     function makePapr(called, requirement, price, gives, flavor) {
@@ -374,7 +377,6 @@ GameElements() {
     makeOpti("Alpha-Beta Pruning", "y.max>=70000 && upgrades.opti3.owned", "IV", 100000, 2000);
     makeOpti("Chain Matrix Multiplication", "y.max>=20000000 && upgrades.opti4.owned", "IV", 30000000, 6000);
 
-    console.log(upgrades.papr1);
 
     
     
