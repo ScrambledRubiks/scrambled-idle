@@ -17,6 +17,7 @@ class OuterSetup {
     static pastebinDataSource = true;
     static showPasteExpiryWarning = true;
     static gameElementsGlobalScope = true;
+    
 }
 if(OuterSetup.debugPrintStatements) console.log("000 debugPrintStatements set to true");
 
@@ -34,6 +35,7 @@ class TypeChecker {
      * If true, only checks the first element of every array for being the wrong type. Helps with performance if you have a lot of objects with arrays.
      */
     static quickArrayCheck=false;
+    
     /**
      * Checks over every object with a class definition in this file for correct types. Call this constructor if you want every ScrambledIdle object to enforce static typing on its member variables. This is recommended for debugging but should definitely be disabled in release versions of your game as it can add to load times.
      */
@@ -152,7 +154,8 @@ class TypeChecker {
                                                     }
                                                 }
                                             } else { //single-type non-array object
-                                                if(obj[key].constructor.name!=type) { //BUG if a key is supposed to be an object but is instead null we error out
+                                                if(obj[key]==null) throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but instead is null`);
+                                                if(obj[key].constructor.name!=type) {
                                                     if(TypeChecker.aOrAn(typeof obj[key])) {
                                                         throw new TypeError(`on object ${obj.id}, property ${key} should be of type ${type} but is instead is a ${obj[key].constructor.name} with the value ${obj[key]}.`);
                                                     } else {
@@ -165,9 +168,15 @@ class TypeChecker {
                                 }
                             }
                         } catch(e) {
-                            console.error("Something has gone wrong with TypeChecker on object \""+objKey+"\".");
-                            console.log(everything[objKey]);
-                            console.error(e);
+                            if(!(e instanceof TypeError)) {
+                                console.error("Something has gone wrong with TypeChecker on object \""+objKey+"\".");
+                                console.log(everything[objKey]);
+                                console.error(e);
+                            } else {
+                                console.log("Problem Object: ");
+                                console.log(everything[objKey]);
+                                throw e;
+                            }
                         }
                     });
                 }
@@ -219,7 +228,7 @@ class TypeChecker {
 
 class Tick {
     static ticks = [];
-    onTick = []; id; interval;delayMS=1000;
+    onTick = []; id; interval=0;delayMS=1000;
 
     static varsTypes = {
         onTick:"function|function[]",
@@ -403,6 +412,11 @@ var updateBaseTick = new Tick("updateBaseTick",[function(){}]);
 
 var fastBaseTick = new Tick("fastBaseTick", ()=>{});
 
+/**
+ * A tick that is only triggered when the game is loaded.
+ */
+var loadBaseTick = new Tick("loadBaseTick", ()=>{});
+
 class SaveManager {
     static varsTypes = {
     }
@@ -420,14 +434,14 @@ class SaveManager {
     static save() {
         if(OuterSetup.debugPrintStatements) console.log("SV01 Saving game state to localStorage...");
         if(this.consoleSaveMessage) console.log("Saving game to localStorage...");
-
+        console.log(everything);
         let saved = {};
         for(let i = 0; i < Object.keys(everything).length; i++) {
             const thingKey = Object.keys(everything)[i];
             const thing = everything[thingKey];
             if(!this.doNotSaveList.includes(thing.id)) {
                 let properties = {};
-                Object.keys(thing).forEach((key)=>{ 
+                Object.keys(thing).forEach((key)=>{
                     if(this.savableKeys.includes(key)) {
                         properties[key] = thing[key];
                     }
@@ -445,13 +459,11 @@ class SaveManager {
      * NOTE: If you are having random weirdness with things not updating when you change the code, clear your save and reload the game as loading will temporarily undo any change you made that affects a savable key.
      */
     static load() {
-        console.log(everything)
         if(localStorage.save!=undefined) {
             if(this.consoleSaveMessage) console.log("Loading game from localStorage...");
             if(OuterSetup.debugPrintStatements) console.log("SV02 Loading game from localStorage...");
             let i=0;
             let save = JSON.parse(localStorage.save);
-            console.log(save)
             for(;i<Object.keys(save).length;i++) {
                 let savedKey = Object.keys(save)[i];
                 let savedObj = save[savedKey];
@@ -463,6 +475,7 @@ class SaveManager {
                     console.warn("Saved key \""+savedKey+"\" not found in current version of game.");
                 }
             }
+            loadBaseTick.tick();
             if(this.consoleSaveMessage) console.log("Loaded "+i+" key/value pairs.");
             if(OuterSetup.debugPrintStatements) console.log("SV02 Loaded "+i+" key/value pairs.");
             
@@ -540,7 +553,9 @@ class DisplayElement {
         this.shown=shown;
         this.element = document.createElement(elementType);
         this.tooltipHTML = tooltipHTML;
-        
+        loadBaseTick.addOnTick(()=>{
+            this.element.className = this.css;
+        });
     }
     /**
      * Removes the DisplayElement from the page.
@@ -1129,13 +1144,11 @@ class Button extends DisplayElement {
      */
     construct(constructed, message="") {
        if(OuterSetup.debugPrintStatements) console.log("BT01",this.id, constructed, message);
-        if(!constructed) {
-            if(OuterSetup.debugPrintStatements) console.log("BT02 Button not constructed");
-            new Button(this.id, this.container, this.innerHTML1, this.css, this.actions, this.tooltipHTML, this.shown, this.disabled);
-            //return;
-        }
         this.element.id=this.id;
         this.element.className="defaultInteriorButtonCSS "+this.css;
+
+        //this allows css to be properly kept when loadBaseTick is triggered
+        this.css = "defaultInteriorButtonCSS " + this.css;
         let self = this;
         let actions2 = self.actions;
         this.element.onclick = function() {
@@ -1226,7 +1239,11 @@ class Button extends DisplayElement {
 }
 
 class Upgrade extends Button {
-    name; flavor; req; cost; effect; defaultPurchaseBehavior; currency; upgradeCSS; owned=false;
+    name; flavor; req; cost; effect; defaultPurchaseBehavior; currency; upgradeCSS; owned=false; 
+    /**
+     * If true, the UpgradeGroup's defaultPurchaseBehavior is NOT run on purchase of this upgrade.
+     */
+    ignoreDefaultBehavior = false;
     static varsTypes = {
         name:"string",
         flavor:"string",
@@ -1251,7 +1268,7 @@ class Upgrade extends Button {
      * @param {string} upgradeCSS The upgrade's CSS class, default is none.
      * @param {Res} currency The currency to use for the upgrade's cost, if cost is a function this should be left null.
      * @private
-     * @extends DisplayElement
+     * @extends Button
      */
     constructor(name, id, container, flavor, req, effect, defaultPurchaseBehavior, cost, upgradeCSS="", currency=null) {
         let tooltipText = "";
@@ -1264,19 +1281,19 @@ class Upgrade extends Button {
             if (self.currency==null&&typeof(cost)=="function") {
                 if(OuterSetup.debugPrintStatements) console.log("UD01 attempt function purchase on upgrade "+self.id);
                 if(cost()) {
-                    self.owned=true;
+                    self.owned = true;
                     if(OuterSetup.debugPrintStatements) console.log("UD02 successful function purchase on upgrade "+self.id);
                     effect();
-                    self.defaultPurchaseBehavior();
+                    if(!self.ignoreDefaultBehavior) self.defaultPurchaseBehavior();
                 }
             } else if(self.currency!=null&&typeof(cost)=="number") {
                 if(OuterSetup.debugPrintStatements) console.log("UD03 attempt resource purchase on upgrade "+self.id);
                 if(cost<=currency.a) {
-                    self.owned=true;
+                    self.owned = true;
                     if(OuterSetup.debugPrintStatements) console.log("UD04 successful resource purchase on upgrade "+self.id);
                     currency.add(-cost);
                     effect();
-                    self.defaultPurchaseBehavior();
+                    if(!self.ignoreDefaultBehavior) self.defaultPurchaseBehavior();
                 }
             } else {
                 throw new Error("Error when attempting to purchase upgrade '"+name+"', bad upgrade creation.\n If cost is some function, currency must not be included in the upgrade arguments. If cost is a number, currency must be a resource. Currency has to specifically be a resource, it cannot just be a variable.");
@@ -1361,7 +1378,7 @@ class UpgradeGroup extends Label {
      * @param {string} id The upgrade's id.
      * @param {string} flavor The upgrade's flavor text.
      * @param {function} req The requirement for the upgrade to be visible.
-     * @param {function} effect The upgrade's effect when purchased.
+     * @param {function} effect The upgrade's effect when purchased, is executed before defaultPurchaseBehavior.
      * @param {number|function} cost A number or a boolean function that dictates whether or not the upgrade can be purchased.
      * @param {string} upgradeCSS The upgrade's CSS class, default is none.
      * @param {Res} currency The currency to use for the upgrade's cost, if cost is a function this should be left null.
@@ -1386,7 +1403,7 @@ class UpgradeGroup extends Label {
         try {
             return eval("this."+id);
         } catch(e) {
-            console.error("Upgrade Error: Attempted and failed to find the upgrade \""+id+"\". Any TypeErrors preceding this error are likely caused by this.")
+            console.error("Upgrade Error: Attempted and failed to find the upgrade \""+id+"\". Any TypeErrors preceding this error are likely caused by this.");
         }
         
     }
@@ -1427,35 +1444,6 @@ class UpgradeGroup extends Label {
         }
     }
     
-}
-
-class Collectable extends DisplayElement {
-    req;effect;owned;
-    constructor(id,container,innerHTML,css,elementType,shown,tooltipHTML,req,effect,owned) {
-        super(id,container,innerHTML,css,elementType,shown,tooltipHTML);
-        this.req=req;
-        this.owned=owned;
-    }
-}
-class CollectableGroup extends Label {
-    collectableCSS;defaultEarnBehavior;
-    constructor(id,container,containerCSS,collectableCSS,defaultEarnBehavior) {
-        super(id,container,"",containerCSS);
-        if(this.constructor == CollectableGroup) {
-            throw new Error("Error on CollectableGroup " + id + ", CollectableGroup is an abstract and should not be instantiated on its own.");
-        }
-        this.collectableCSS = collectableCSS;
-        this.defaultEarnBehavior = defaultEarnBehavior;
-    }
-    c(elementType, name,id,tooltip,req,effect) {
-        let collectable = new Collectable(id,this.id,name,this.collectableCSS,elementType,req(),tooltip,req,effect,false);
-        Object.defineProperty(this, id, {
-            configurable:true,
-            writable:true,
-            enumerable:true,
-            value:collectable,
-        });
-    }
 }
 /**
  * Creates a new UpgradeGroup.
@@ -2130,7 +2118,6 @@ class Terminal extends Label {
         return lineDelay;
     }
     /**
-     * 
      * @returns The text in the input TextArea
      */
     pollInput() {

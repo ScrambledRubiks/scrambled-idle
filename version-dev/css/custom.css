@@ -83,6 +83,9 @@
     left:70%;
     text-align: center;
 }
+.leftUnset {
+  left:unset;
+}
 
 .classBoing {
   animation-name: boing;

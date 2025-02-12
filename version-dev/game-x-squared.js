@@ -32,7 +32,7 @@ export {Game};
     /**
      * If true, only checks the first element of every array for being the wrong type. Helps with performance if you have a lot of objects with arrays.
      */
-    TypeChecker.quickArrayCheck=false
+    TypeChecker.quickArrayCheck = false
 
     /**
      * A list of IDs for DisplayElements that will NOT have their properties saved or loaded. Add as much as you can to keep saves from being bricked whenever you make a change!
@@ -46,7 +46,6 @@ export {Game};
 
 }
 class Game {
-    x;
 GameElements() {
     let info = new InfoMenu("infoContainer", `
         You're playing X Squared by ScrambledRubiks, a minimalist idle game about research and math.<br>
@@ -141,7 +140,6 @@ GameElements() {
 
 //Ticks
     let autosaveTick = new Tick("autosaveTick",function() {SaveManager.save()});
-    autosaveTick.interval = 0;
     let graphUpdateTick = new Tick("graphUpdateTick", () => {
         calculator.setMathBounds({
             left:-1,
@@ -163,12 +161,14 @@ GameElements() {
     let x = ResO({
         name:"x",
         id:"x",
-        initVal:25
+        initVal:0
     });
     this.x = x;
+    //x.yield = 100;
+
     let y = new Res("y", "y");
     let researchFunds = new Res("dollars", "researchFunds");
-
+    this.researchFunds = researchFunds;
 
     let xOnClick = new Res("xOnClick", "xOnClick", 1);
 
@@ -281,12 +281,17 @@ GameElements() {
             t.t("Every time you purchase a term or upgrade that costs y, x goes down to 0. Purchase wisely!")
         }
     }, 25, y, 1);
-    terms.b("x¹ᐧ³", "termX13", "", ()=>{return y.max>1000}, ()=>{}, 4000, y);
+    terms.b("x¹ᐧ³", "termX13", "", ()=>{return y.max>1000}, ()=>{
+        equationDisplay.element.classList.add("leftUnset");
+        console.log(equationDisplay.element.style.left);
+        equationDisplay.css += " leftUnset";
+    }, 4000, y);
+    this.equation = equationDisplay;
     terms.b("x¹ᐧ⁶", "termX16", "", ()=>{return y.max>70000}, ()=>{}, 200000, y);
     terms.b("x²", "termX2", "", function() {return y.max>10000000}, () => {},100000000, y);
 
     visualBaseTick.addOnTick(() => {
-        equationDisplay.innerHTML = `Current Equation: <i>y = ${terms.bFromId("termX2").a>0 ? terms.bFromId("termX2").a+"x²+":""}${terms.bFromId("termX16").a>0 ? terms.bFromId("termX13").a+"x+":""}${terms.bFromId("termX1").a}x</i>`;
+        equationDisplay.innerHTML = `Current Equation: <i>y =${terms.termX2.a>0 ? terms.termX2.a+"x²+":""} ${terms.termX16.a>0 ? terms.termX16.a+"x¹ᐧ⁶+":""}${terms.termX13.a>0 ? terms.termX13.a+"x¹ᐧ³+":""}${terms.bFromId("termX1").a}x</i>`;
     });
 
     let upgradesLabel = new Label("upgradesLabel", "main", "Upgrades","cUpgradesLabel");
@@ -310,11 +315,8 @@ GameElements() {
 
 
     yUpdateTick.start(200);
-
+    autosaveTick.interval = 30000;
     //autosaveTick.start(30000);
-    
-    SaveManager.load();
-    SaveManager.save();
     
 //Custom functions
     let compCount = 0;
@@ -335,9 +337,10 @@ GameElements() {
     function makeOpti(called,requirement,numeral,price, gives) {
         optiCount++;
         upgrades.u(`🖫 ${called}`, "opti"+optiCount, `<b>🖫 Optimization ${numeral}</b><br>When a term or upgrade that costs y is purchased, x goes down to <b>${gives+rOptimization.a}</b>.`, ()=>{return eval(requirement)}, ()=>{
-            rOptimization.a+=gives;
-        }, price);
+            rOptimization.a = gives;
+        }, price, y);
     }
+    this.rOptimization = rOptimization
     let paperCount = 0;
     function makePapr(called, requirement, price, gives, flavor) {
         paperCount++;
@@ -351,15 +354,15 @@ GameElements() {
     makePapr("Sinking Point Numbers", ()=>{return y.max>=400}, 600, 3, "While ordinary floating point numbers have their decimal points move for efficient storage in binary, the decimal of the proposed sinking point number simply moves to the left until it moves out of the number itself. The potential applications within optimization theory are surprisingly numerous.");
     makePapr("Paranormal Distributions", ()=>{return y.max>=700}, 1500, 4, "So named for their spookiness in completely breaking the cleanliness of a normal distribution. Also, when put into the complex plane, the distribution allows one to summon the ghost of René Descartes.");
     makePapr("The Neurological Effect of Statistics Puns", ()=>{return terms.bFromId("termX13").max>=1}, 15000, 5, "An exploratory paper into the effects of statistics-related puns on the human psyche. The study found that as <i>n → ∞</i> where n = number of statistics-related puns, rates of anxiety and depression approaches 1.");
-    makePapr("Halfli-Mechanical Valveumes", ()=>{return y.max>=20000}, 20000, 10, "A rigorous proof of the concept that the number 3 cannot exist in certain contexts, such as within certain popular video game franchises.");
+    makePapr("Least-Efficent Splines", ()=>{return y.max>=20000}, 20000, 10, "Splines are typically meant to connect points smoothly, such as connecting a polynomial's zeroes to find that polynomial. It was rather surprising to find that no one had yet tried applying the principle of bogosort to this problem wherein a smooth curve is randomly drawn until it happens to hit the points required.");
     makePapr("Inverse-Inverse Kinematics Problems", ()=>{return y.max>=80000}, 300000, 17, "These are somehow different from non-inverse kinematics problems. Well, probably. Maybe. It's not totally clear, but it can certainly be tried to treat them as such.");
-    makePapr("Least-Efficent Splines", ()=>{return y.max>800000}, 10000000, 24, "Splines are typically meant to connect points smoothly, such as connecting a polynomial's zeroes to find that polynomial. It was rather surprising to find that no one had yet tried applying the principle of bogosort to this problem wherein a smooth curve is randomly drawn until it happens to hit the points required.");
+    makePapr("Supernatural Logarithms", ()=>{return y.max>800000}, 10000000, 24, "As calculus-based extension of the paranormal distribution, these inverse exponentials carry the property of setting Euler's constant <i>e</i> to the derived ghost of a long-forgotten busy beaver algorithm. The general effect is that both Euler and Newton can be added to the list of long-passed mathematicians research has turned into rather disgruntled participants in modern research.");
     makePapr("Puzzle Cube Theorem of Impossibility", ()=>{return upgrades.uFromId("papr7").owned && y>=7000000}, 17000000, 38, "This paper postulates the idea that, once scrambled, an ordinary 3x3 puzzle cube is mathematically impossible to solve, and that anyone who claims otherwise is a fraud. While not the strongest proof, it will certainly make enough waves within some internet communities that the research will prove its worth.");
     makePapr("Email-Based Energy", ()=>{return upgrades.uFromId("papr8").owned}, 20000000, 56, "Proposal for a prototype energy source fueled, rather inexplicably, by the outrage contained in certain emails discussing so-called 'provably wrong' opinions.");
 
     //Computing
     makeComp("A Helpful Friend", ()=>{return terms.termX1.max>2}, "I", 1,1);
-    makeComp("Pen and Paper", ()=>{return terms.termX1.max>3&&upgrades.comp3.owned}, "II", 3, 6);
+    makeComp("Pen and Paper", ()=>{return terms.termX1.max>3&&upgrades.comp1.owned}, "II", 3, 6);
     makeComp("Slide Rule", ()=>{return y.max>8000&&upgrades.comp1.owned}, "III", 4,14);
     makeComp("Kinematic Abacus", ()=>{return upgrades.papr6.owned}, "IV", 10,28);
     makeComp("Four-Function Calculator", ()=>{return y.max>12000000}, "V", 20,36);
@@ -377,7 +380,9 @@ GameElements() {
     makeOpti("Alpha-Beta Pruning", "y.max>=70000 && upgrades.opti3.owned", "IV", 100000, 2000);
     makeOpti("Chain Matrix Multiplication", "y.max>=20000000 && upgrades.opti4.owned", "IV", 30000000, 6000);
 
-
+    //Misc Upgrades
+    upgrades.u("🅜 $1 In Change Found in the Couch Cushion", "misc1", "<b>🅜 Miscellaneous</b><br>Grants <b>$1</b> for the Research Fund.", ()=>{ return this.u.papr1.owned;}, ()=>{researchFunds.add(1);}, 0, y);
+    upgrades.misc1.ignoreDefaultBehavior = true;
     
     
 
@@ -397,11 +402,11 @@ GameElements() {
             top:y.max
 
         });
-        currentLaTeX = `${terms.bFromId("termX2").amount}x^2 + ${terms.bFromId("termX16").amount}x^{1.6} + ${terms.bFromId("termX13").amount}x^{1.3} + ${terms.bFromId("termX1").amount}x`;
+        SaveManager.load();
+        currentLaTeX = `${terms.bFromId("termX2").amount}x^2 + ${terms.bFromId("termX16").amount}x^{1.6} + ${terms.termX13.amount}x^{1.3} + ${terms.bFromId("termX1").amount}x`;
         calculator.setExpression({id:'graph1', latex:currentLaTeX});
 
         graphUpdateTick.start(50);
 
-
-}
+    }
 }

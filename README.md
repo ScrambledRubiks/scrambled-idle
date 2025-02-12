@@ -8,7 +8,6 @@ Its main design philosophy is to balance beginner-friendliness and ease of use w
 > Note: While much of its codebase is in a working and near-final state, ScrambledIdle is currently unfinished and is missing some core features. Code and documentation may be incomplete, and very little QA testing has occured.
 
 ## Planned Next-Revision changes
-- Reimplementing SaveManager to not have a jStorage dependancy
 - Compete refactor of Building, Upgrade, and Achievement to inherit a Collectable superclass
 - Logic rework of logAnim in Terminal to allow for nested divs within the message
 - Rework of Tick so that functions can be added and removed in an object-oriented manner
