@@ -222,7 +222,12 @@ class TypeChecker {
     }
 }
 
-
+class ContainerError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "ContainerError";
+    }
+}
 
 //BEGIN TYPE CHECKING
 
@@ -515,7 +520,7 @@ class DisplayElement {
     constructed = false;
     hasIcon = false;
     iconURL=null;
-    tooltipInterval;
+    tooltipInterval = [];
     static varsTypes = {
         id:"string",
         container:"string",
@@ -541,7 +546,6 @@ class DisplayElement {
      * @abstract
      */
     constructor(id, container, innerHTML, css, elementType, shown=true, tooltipHTML="") {
-
         if (this.constructor == DisplayElement) {
             throw new Error("Error on DisplayElement "+id+", DisplayElement is an abstract and should not be instantiated on its own.");
           }
@@ -555,6 +559,8 @@ class DisplayElement {
         this.tooltipHTML = tooltipHTML;
         loadBaseTick.addOnTick(()=>{
             this.element.className = this.css;
+            if(this.shown) this.construct(true, "called in DE constructor");
+            console.log(visualBaseTick, updateBaseTick);
         });
     }
     /**
@@ -584,11 +590,12 @@ class DisplayElement {
      * TODO: Add an optional fade-in animation as a parameter to construct()
      */
     show() {
-        if(!this.checkIfValid(this.container)) throw new Error("Container errror on DisplayElement "+this.id+", the container provided is not valid.(provided name "+this.container+") This may be caused by the name of the container not existing or by passing in an HTML element as the container instead of just the element's id.");
+        if(!this.checkIfValid(this.container)) throw new ContainerError("on DisplayElement "+this.id+", the container provided is not valid.(provided name "+this.container+") This may be caused by the name of the container not existing or by passing in an HTML element as the container instead of just the element's id.");
         if(!this.checkIfValid(this.id)&&this.checkIfValid(this.container)) {
             let f = false;
             this.construct(f, "called in show()");
             if(this.iconURL!=null) this.icon();
+            this.shown = true;
         }
     }
     /**
@@ -676,7 +683,7 @@ class DisplayElement {
                 tooltip.classList.add("tooltipOut");
                 let self = this;
                 this.get.addEventListener("mouseenter", ()=>{
-                    let elementCoords = this.get.getClientRects()[0];
+                    let elementCoords = self.get.getClientRects()[0];
                     //moves the tooltip to a 10px offset from the edge of the DisplayElement
                     //TODO OuterSetup tooltip offset variable
                     tooltip.style.right=`-${elementCoords.x-10}px`;
@@ -690,19 +697,24 @@ class DisplayElement {
                     tooltip.classList.add("tooltipHover");
                     
                     tooltip.style.visibility="visible";
-                    //checks if the tooltip is clipping off the
-                    if(tooltip.getClientRects()[0].x<0) {
+                    //checks if the tooltip is clipping off the left side of the screen
+                    if(tooltip.getClientRects()[0].x-100<0) {
                         tooltip.style.right=`-${elementCoords.x+elementCoords.width+315}px`;
                     }
-                    self.tooltipInterval = setInterval(()=> {
+                    let interval = setInterval(()=> {
                         tooltip.innerHTML=self.tooltipHTML;
-                    }, 100)
+                    }, 100);
+                    self.tooltipInterval.push(interval);
                 });
                 this.get.addEventListener("mouseleave", ()=>{
                     tooltip.style.visibility="hidden";
                     tooltip.classList.remove("tooltipHover");
                     tooltip.classList.add("tooltipOut");
-                    clearInterval(self.tooltipInterval);
+                    self.tooltipInterval.forEach((int)=> {
+                        clearInterval(int);
+                    });
+                    self.tooltipInterval = [];
+                    
                 });
             } catch(error) {
                 console.error("Tooltip Error on DisplayElement '"+this.id+"'. Attempted to attach a tooltip to a DisplayElement that hasn't been instantiated yet.(Actual error: "+error+")");
@@ -773,7 +785,7 @@ class DisplayElement {
     set tooltip(html) {
         if(OuterSetup.debugPrintStatements) console.log("DE07 setting tooltip for DisplayElement '"+this.id+"'");
         this.tooltipHTML = html;
-        this.tooltip_able();
+        if(!this.hasTooltip) this.tooltip_able();
     }
     
 }
@@ -1048,7 +1060,7 @@ class Label extends DisplayElement {
                 if(OuterSetup.debugPrintStatements) console.log(this.id, "LB03 finished adding tooltip");
             }
             } catch(e) {
-                throw new Error("Label Error: Tried to add the label " + this.id+" to the container "+this.container+" and failed.");
+                throw new ContainerError("Tried to add the label " + this.id+" to the container "+this.container+" and failed.");
             }
             if(OuterSetup.debugPrintStatements) console.log("LB05 label",this.id, "finished creation no tooltip");
     }
@@ -1170,7 +1182,7 @@ class Button extends DisplayElement {
             this.tooltip_able();
         }
         } catch(error) {
-            throw new Error("when trying to create the DisplayElement \""+this.id+"\", attempted to place the DisplayElement in a container that does not exist. "+"(actual error: "+error+")")
+            throw new ContainerError("when trying to create the DisplayElement \""+this.id+"\", attempted to place the DisplayElement in a container that does not exist. "+"(actual error: "+error+")")
         }
         let elem = this.get;
         elem.addEventListener("mousedown", (e) => {
@@ -1251,7 +1263,7 @@ class Upgrade extends Button {
         cost:"number|bigint|function",
         effect:"function",
         defaultPurchaseBehavior:"function",
-        currency:"Res",
+        currency:"Res|null",
         upgradeCSS:"string",
         owned:"boolean"
     }
@@ -1266,7 +1278,7 @@ class Upgrade extends Button {
      * @param {function} defaultPurchaseBehavior A set of default behaviors when the upgrade is purchased, defined in each UpgradeGroup.
      * @param {number|bigint|function} cost A number or a boolean function that dictates whether or not the upgrade can be purchased.
      * @param {string} upgradeCSS The upgrade's CSS class, default is none.
-     * @param {Res} currency The currency to use for the upgrade's cost, if cost is a function this should be left null.
+     * @param {Res|null} currency The currency to use for the upgrade's cost, if cost is a function this should be left null.
      * @private
      * @extends Button
      */
@@ -1329,6 +1341,15 @@ class Upgrade extends Button {
                     self.disable();
                     self.tooltip = "<b><u>"+self.name+"</u></b><br><div style=\"color:red; display:inline;\">"+" "+self.cost+" "+self.currency.name+"</div><br>"+self.flavor;
                 }
+        } else if(self.currency==null && typeof(self.cost) == "function") {
+            if (cost()) {
+                self.enable();
+                self.tooltip ="<b><u>"+self.name+"</u></b><br>" + self.flavor;
+
+            } else {
+                self.disable();
+                self.tooltip ="<b><u>"+self.name+"</u></b><br>" + self.flavor;
+            }
         }
         }]);
         Object.defineProperty(everything, id, {
@@ -1523,7 +1544,7 @@ class Building extends Button{
         super(id,container.id,name+": "+amount, buildingCSS, [function() {
             if(currency.amount>=self.cost) {
                 self.amount +=1;
-                self.a=amount;
+                self.a=self.amount;
                 currency.add(-self.cost);
                 self.cost *= self.buildingCostIncrease;
                 self.defaultPurchaseBehavior();
@@ -1553,11 +1574,11 @@ class Building extends Button{
                 if (self.currency.amount>=self.cost) {
                     if(OuterSetup.debugPrintStatements) console.log("BD02 successfully purchased building with id", self.id);
                     self.enable();
-                    self.tooltip = "<b><u>"+self.name+"</u></b><br><div style=\"color:green; display:inline;\">"+" "+self.cost+" "+self.currency.name+"</div><br>"+self.flavor;
+                    self.tooltip = "<b><u>"+self.name+"</u></b><br><div style=\"color:green; display:inline;\">"+" "+Res.numberPrettify(self.cost)+" "+self.currency.name+"</div><br>"+self.flavor;
 
                 } else { 
                     self.disable();
-                    self.tooltip = "<b><u>"+self.name+"</u></b><br><div style=\"color:red; display:inline;\">"+" "+self.cost+" "+self.currency.name+"</div><br>"+self.flavor;
+                    self.tooltip = "<b><u>"+self.name+"</u></b><br><div style=\"color:red; display:inline;\">"+" "+Res.numberPrettify(self.cost)+" "+self.currency.name+"</div><br>"+self.flavor;
                 }
                 self.get.innerHTML = name+": "+self.amount;
                 if(self.hasIcon) self.icon();
@@ -1773,13 +1794,30 @@ class Achievement extends Label{
      * @extends Label
      */
     constructor(name,id,flavor,req=null,container,css, owned=false,icon=null, toast) {
+        try {
+            super(id,container,name, css, 
+                `
+                <b><u>${name}</u></b><br>
+                ${flavor}
+                `
+                , req());
+        } catch(e) {
+            if(!e instanceof ContainerError) throw e;
+            visualBaseTick.addOnTick(()=>{
+                try {
+                    this.show(); //TODO this really isn't a good solution
+                } catch(err) {
+                    if(!err instanceof ContainerError) throw e;
+                }
+            });
+            super(id,container,name, css, 
+                `
+                <b><u>${name}</u></b><br>
+                ${flavor}
+                `
+                , false);
+        }
         
-        super(id,container,name, css, 
-            `
-            <b><u>${name}</u></b><br>
-            ${flavor}
-            `
-            , req());
         this.name=name;
         this.req=req;
         this.flavor=flavor;
@@ -1835,11 +1873,9 @@ class AchievementGroup extends Label{
      * @param {string} toastPosition The position for the achievement toasts, defaults to bottom
      * @extends Label
      */
-    constructor(id,container="infoAchievementBox",toastContainer=null, containerCSS="",achievementCSS="defaultButtonCSS",toastCSS="",toastPosition="bottom") {
-        try {
-        super(id,container,"", containerCSS);
-        } catch(e) {
-            super(id,container,"",containerCSS, "", false);
+    constructor(id,container="infoAchievementBox",shown=false, toastContainer=null, containerCSS="",achievementCSS="defaultButtonCSS",toastCSS="",toastPosition="bottom") {
+            console.log(shown);
+            super(id,container,"",containerCSS, "",shown);
             let self = this;
             
             visualBaseTick.addOnTick([function() {
@@ -1853,7 +1889,6 @@ class AchievementGroup extends Label{
                 } catch(e) {
                 }
             }])
-        }
         this.achievementExists=true;
         this.id=id;
         this.container=container;
@@ -1909,7 +1944,7 @@ function AchievementGroupO(obj) {
 class InfoMenu {
     static varsTypes={
     };
-    constructor(container, infoText, useAchievementMenu=true, pauseOnOpen=true, optionalCSS="") {
+    constructor(container, infoText, achievementGroup=null, pauseOnOpen=true, optionalCSS="") {
         let containerElement = document.getElementById(container);
         containerElement.style="z-index:10000;";
         let bigBackground = new Button("infoBigBackground", container, "", "infoBigBackground",function() {
@@ -1931,8 +1966,9 @@ class InfoMenu {
             SaveManager.save();
         }, "Save the game.", false);
         let infoGroup = new DisplayGroup([infoBackground, bigBackground, infoCloseButton, saveClearButton, saveButton, infoTextElement]);
-        if(useAchievementMenu) {
+        if(achievementGroup!=null) {
             infoGroup.add(achievementBackground);
+            infoGroup.add(achievementGroup);
         }
         let showInfo = new Button("showInfo",container, "i", "showInfo", function() {
             if(OuterSetup.debugPrintStatements) console.log("IM01 showing info menu");
@@ -2145,7 +2181,7 @@ class Terminal extends Label {
 }
 
 
-export {OuterSetup,TypeChecker,SaveManager,DisplayElement,DisplayGroup,Res,ResO,Tick,TickO,Label,Button,Upgrade,UpgradeGroup,UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,ToastO,Achievement,AchievementGroup,AchievementGroupO,InfoMenu, TextArea, TextAreaO, Terminal, visualBaseTick, updateBaseTick};
+export {OuterSetup,TypeChecker,SaveManager,DisplayElement,DisplayGroup,Res,ResO,Tick,TickO,Label,Button,Upgrade,UpgradeGroup,UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,ToastO,Achievement,AchievementGroup,AchievementGroupO,InfoMenu, TextArea, TextAreaO, Terminal, visualBaseTick, updateBaseTick, pause, unpause};
 
 visualBaseTick.start(100);
 updateBaseTick.start(100);

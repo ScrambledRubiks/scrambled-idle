@@ -18,25 +18,45 @@
   }
   .cTermsBox {
     border: 2px solid black;
-    position: absolute;
+    position:relative;
     right:0%;
-    left:70%;
-    bottom:50%;
-    top:10%;
+    left:0%;
     padding: 5px;
     padding-right: 10px;
   }
   .cTermsLabel {
     border: 2px solid black;
-    position: absolute;
     right:0%;
-    left:70%;
+    left:0%;
     bottom:90%;
     top:5%;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 5px;
   }
+  .equation {
+    border: 3px dashed #000;
+    background-color: #FFFFFF;
+    margin:5px;
+    font-size: 20px;
+    top:9px;
+    padding: 3px;
+    right: 2px;
+    left:0%;
+    text-align: center;
+}
+
+.termsCont {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  position: absolute;
+  left:70%;
+  right:0%;
+  top:0%;
+  bottom:50%;
+}
   .cTerms {
     width:100%;
     font-family: 'Noto Serif';
@@ -72,17 +92,8 @@
     font-weight: 400;
   }
 
-  .equation {
-    border: 3px dashed #000;
-    background-color: #FFFFFF;
-    position: absolute;
-    font-size: 20px;
-    top:9px;
-    padding: 3px;
-    right: 2px;
-    left:70%;
-    text-align: center;
-}
+ 
+
 .leftUnset {
   left:unset;
 }
@@ -231,6 +242,7 @@
     padding:5px;
     font-size: 20px;
   }
+
 
   .circuitImage {
     width:200px;

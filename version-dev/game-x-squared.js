@@ -1,4 +1,4 @@
-import {OuterSetup,TypeChecker,SaveManager,DisplayElement,Res,ResO,Tick,Label,Button,Upgrade,UpgradeGroup, UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,Achievement,AchievementGroup,InfoMenu, TextArea,  Terminal, visualBaseTick, updateBaseTick} from "./back/back.js";
+import {OuterSetup,TypeChecker,SaveManager,DisplayElement,Res,ResO,Tick,Label,Button,Upgrade,UpgradeGroup, UpgradeGroupO,Building,BuildingGroup,BuildingGroupO,Toast,Achievement,AchievementGroup,InfoMenu, TextArea,  Terminal, visualBaseTick, updateBaseTick, pause, unpause} from "./back/back.js";
 export {Game};
 
 /* Setup Constants */ {
@@ -47,6 +47,7 @@ export {Game};
 }
 class Game {
 GameElements() {
+    let achi = new AchievementGroup("achi", "infoAchievementBox", false, "main");
     let info = new InfoMenu("infoContainer", `
         You're playing X Squared by ScrambledRubiks, a minimalist idle game about research and math.<br>
         <br>
@@ -135,7 +136,7 @@ GameElements() {
           <br>(02/23) Patch # 0.3 Initial public prerelease!
           </dd>
           For the sake of not providing misinformation, Optimization 2 is not a real optimization method.
-          `);
+          `, achi);
 
 
 //Ticks
@@ -151,11 +152,13 @@ GameElements() {
     })
 
     let yUpdateTick = new Tick("yUpdateTick",[function() {
-        y.a = x.a * terms.bFromId("termX1").a + Math.pow(x.a*terms.bFromId("termX2").a, 2);
+        y.a = evaluatex(currentLaTeX)({x:x.a});
     }]);
 
 
     let t = new Toast("toast", "toast", "bottom");
+
+    achi.a("test", "test", "", ()=>{return true})
 
 //Resources
     let x = ResO({
@@ -182,33 +185,10 @@ GameElements() {
 //Buttons/Labels/Groups
 
     SaveManager.doNotSaveList.push("bigButton");
-    let equationDisplay = new Label("equation", "main", "Current Equation: y=1x", "equation", "hi");
     
     let currentLaTeX = "x";
 
-    visualBaseTick.addOnTick(()=>{
-        let eqEv = evaluatex(currentLaTeX);
-        let displayedValues = "";
-        let add = (val)=>{
-            if(val>rOptimization.a) {
-                displayedValues += `<br>x=${val} y=${eqEv({x:val})}`;
-            }
-        }
-        add(100);
-        add(500);
-        add(1000);
-        add(5000);
-        add(10000);
-        add(50000);
-        add(100000);
-        add(500000);
-        add(1000000);
-        equationDisplay.tooltip = `
-         <div style="text-align: left; font-size:12px;">This is the equation which converts x into y. The following is a list of what y is at different values of x for your equation:<br>
-         <b>x=${rOptimization.a} y=${eqEv({x:rOptimization.a})}
-         ${displayedValues}</div></b>
-        `;
-    });
+    
     let mainArea = new Label("mainArea", "main", "", "main");
     let xDisp = Label.O({
         id:"xDisp",
@@ -250,10 +230,40 @@ GameElements() {
         }
     });
     this.y = y;
-    let termsLabel = new Label("termsLabel", "main", "Terms","cTermsLabel");    
+    let termsCont = new Label("termsCont", "main", "", "termsCont");
+    let equationDisplay = new Label("equation", "termsCont", "Current Equation: y=1x", "equation", "hi");
+    visualBaseTick.addOnTick(()=>{
+        let eqEv = evaluatex(currentLaTeX);
+        let displayedValues = "";
+        let add = (val)=>{
+            if(val>rOptimization.a) {
+                displayedValues += `<br>x=${Res.numberPrettify(val)} y=${Res.numberPrettify(eqEv({x:val}))}`;
+            }
+        }
+        add(100);
+        add(500);
+        add(1000);
+        add(5000);
+        add(10000);
+        add(50000);
+        add(100000);
+        add(500000);
+        add(1000000);
+        equationDisplay.tooltip = `
+         <div style="text-align: left; font-size:12px;">This is the equation which converts x into y. The following is a list of what y is at different values of x for your equation:<br>
+         <b>x=${rOptimization.a} y=${Res.numberPrettify(eqEv({x:rOptimization.a}))}
+         ${displayedValues}</div></b>
+        `;
+    });
+    this.pause = pause;
+    let termsLabel = new Label("termsLabel", "termsCont", "Terms","cTermsLabel"); 
+    visualBaseTick.addOnTick(()=>{
+        terms.get.style.height = `${termsCont.get.offsetHeight - (equationDisplay.get.offsetHeight + termsLabel.get.offsetHeight)}px`
+    });   
     SaveManager.doNotSaveList.push("termsLabel");
-    let terms = new BuildingGroup("terms", "main","cTermsBox","cTerms", 2.5, function() {
-        currentLaTeX = `${terms.bFromId("termX2").amount}x^2 + ${terms.bFromId("termX1").amount}x`;
+    let terms = new BuildingGroup("terms", "termsCont","cTermsBox","cTerms", 2.5, function() {
+        currentLaTeX = `${terms.bFromId("termX2").amount}x^2 + ${terms.termX13.amount}x^{1.3} + ${terms.bFromId("termX1").amount}x`;
+        console.log(currentLaTeX)
         y.a=0;
         x.a=rOptimization.a;
         calculator.setExpression({id:'graph1', latex:currentLaTeX});
@@ -270,9 +280,10 @@ GameElements() {
             rStatFacilityTime.a-=60;
         }
     }, "", false);
+    this.stat = statPun;
     visualBaseTick.addOnTick(()=>{
         statPun.innerHTML = `(ᴸᵛᴸ ${rStatFacilityLevel.a}) Center for Statistics Pun Recovery`;
-        statPun.tooltip=`<b>Level ${rStatFacilityLevel.a} / 59</b><br>Generates Research Funds over time.<br>Current generation rate: 1 dollar every <b>${60-rStatFacilityLevel.a}</b> minutes.<br>Time until next dollar: ${Math.ceil(rStatFacilityTime.a/60)} minutes.<br><b>${y.a>=rStatFacilityPrice.a&&rStatFacilityLevel.a<59 ? `<div style="color:#126F00;">Click to level up for ${rStatFacilityPrice.a} y</div>`:`<div style="color:#9C0000;">Next Level: ${rStatFacilityPrice.a} y</div>`}`
+        statPun.tooltip=`<b>Level ${rStatFacilityLevel.a} / 59</b><br>Generates Research Funds over time.<br>Current generation rate: 1 dollar every <b>${60-rStatFacilityLevel.a}</b> minutes.<br>Time until next dollar: ${Math.ceil(rStatFacilityTime.a/60)} minutes.<br><b>${y.a>=rStatFacilityPrice.a&&rStatFacilityLevel.a<59 ? `<div style="color:#126F00;">Click to level up for ${rStatFacilityPrice.a} y</div>`:`<div style="color:#9C0000;">Next Level: ${rStatFacilityPrice.a} y</div>-----<br><i style="font-size:10px;">A place where those afflicted by Statistics Pun Overdose Syndrome can feel safe and welcome, for a nominal fee of course.</i>`}`
     });
 
 //Buildings
@@ -311,7 +322,6 @@ GameElements() {
     });
     this.u = upgrades;
 
-    let achi = new AchievementGroup("achi", "infoAchievementBox", "main");
 
 
     yUpdateTick.start(200);
@@ -354,7 +364,7 @@ GameElements() {
     makePapr("Sinking Point Numbers", ()=>{return y.max>=400}, 600, 3, "While ordinary floating point numbers have their decimal points move for efficient storage in binary, the decimal of the proposed sinking point number simply moves to the left until it moves out of the number itself. The potential applications within optimization theory are surprisingly numerous.");
     makePapr("Paranormal Distributions", ()=>{return y.max>=700}, 1500, 4, "So named for their spookiness in completely breaking the cleanliness of a normal distribution. Also, when put into the complex plane, the distribution allows one to summon the ghost of René Descartes.");
     makePapr("The Neurological Effect of Statistics Puns", ()=>{return terms.bFromId("termX13").max>=1}, 15000, 5, "An exploratory paper into the effects of statistics-related puns on the human psyche. The study found that as <i>n → ∞</i> where n = number of statistics-related puns, rates of anxiety and depression approaches 1.");
-    makePapr("Least-Efficent Splines", ()=>{return y.max>=20000}, 20000, 10, "Splines are typically meant to connect points smoothly, such as connecting a polynomial's zeroes to find that polynomial. It was rather surprising to find that no one had yet tried applying the principle of bogosort to this problem wherein a smooth curve is randomly drawn until it happens to hit the points required.");
+    makePapr("Least-Efficent Splines", ()=>{return y.max>=20000}, 50000, 10, "Splines are typically meant to connect points smoothly, such as connecting a polynomial's zeroes to find that polynomial. It was rather surprising to find that no one had yet tried applying the principle of bogosort to this problem wherein a smooth curve is randomly drawn until it happens to hit the points required.");
     makePapr("Inverse-Inverse Kinematics Problems", ()=>{return y.max>=80000}, 300000, 17, "These are somehow different from non-inverse kinematics problems. Well, probably. Maybe. It's not totally clear, but it can certainly be tried to treat them as such.");
     makePapr("Supernatural Logarithms", ()=>{return y.max>800000}, 10000000, 24, "As calculus-based extension of the paranormal distribution, these inverse exponentials carry the property of setting Euler's constant <i>e</i> to the derived ghost of a long-forgotten busy beaver algorithm. The general effect is that both Euler and Newton can be added to the list of long-passed mathematicians research has turned into rather disgruntled participants in modern research.");
     makePapr("Puzzle Cube Theorem of Impossibility", ()=>{return upgrades.uFromId("papr7").owned && y>=7000000}, 17000000, 38, "This paper postulates the idea that, once scrambled, an ordinary 3x3 puzzle cube is mathematically impossible to solve, and that anyone who claims otherwise is a fraud. While not the strongest proof, it will certainly make enough waves within some internet communities that the research will prove its worth.");
@@ -383,6 +393,10 @@ GameElements() {
     //Misc Upgrades
     upgrades.u("🅜 $1 In Change Found in the Couch Cushion", "misc1", "<b>🅜 Miscellaneous</b><br>Grants <b>$1</b> for the Research Fund.", ()=>{ return this.u.papr1.owned;}, ()=>{researchFunds.add(1);}, 0, y);
     upgrades.misc1.ignoreDefaultBehavior = true;
+    upgrades.u("🅜 Center for Statistics Pun Recovery", "misc2", "<b>🅜 Miscellaneous</b><br>Unlocks the <b>Center for Statistics Pun Recovery</b>, a facility to help accumulate Research Funds.<br>------<br><i>A place where those afflicted by Statistics Pun Overdose Syndrome can feel safe and welcome, for a nominal fee of course.<i>", ()=>{return upgrades.papr4.owned}, ()=>{
+        statPun.show();
+    }, 8, researchFunds);
+    
     
     
 
@@ -404,6 +418,7 @@ GameElements() {
         });
         SaveManager.load();
         currentLaTeX = `${terms.bFromId("termX2").amount}x^2 + ${terms.bFromId("termX16").amount}x^{1.6} + ${terms.termX13.amount}x^{1.3} + ${terms.bFromId("termX1").amount}x`;
+        this.b=terms;
         calculator.setExpression({id:'graph1', latex:currentLaTeX});
 
         graphUpdateTick.start(50);
