@@ -55,8 +55,6 @@ class TypeChecker {
                 if(line.includes("class ")&&line.includes("{")&&!line.includes("}")&&!line.includes("*")) {
                     if(line.includes("extends")) {
                         extend = [line.split(" ")[3].split("{")[0]]
-                        
-                        //console.log(extend)
                     }
                     className = line.split("class ")[1];
                     className = className.split("{")[0];
@@ -67,7 +65,6 @@ class TypeChecker {
                 }
                 if(className!="") {//test
                     let checkedClass = eval(className);
-                    // console.log(checkedClass)
                     let varsTypes = checkedClass.varsTypes;
                     let varsKeys = ["none"];
                     try {
@@ -168,8 +165,8 @@ class TypeChecker {
                                 }
                             }
                         } catch(e) {
+                            console.error("Something has gone wrong with TypeChecker on object \""+objKey+"\".");
                             if(!(e instanceof TypeError)) {
-                                console.error("Something has gone wrong with TypeChecker on object \""+objKey+"\".");
                                 console.log(everything[objKey]);
                                 console.error(e);
                             } else {
@@ -191,10 +188,10 @@ class TypeChecker {
         .split(" extends ")
 
         try {
-        c[1]=c[1].split(" ")[0]
-        let toReturn = c[0]
-        toReturn += ","+this.findInheritancePath(c[1]);
-        return toReturn.split(",");
+            c[1]=c[1].split(" ")[0]
+            let toReturn = c[0]
+            toReturn += ","+this.findInheritancePath(c[1]);
+            return toReturn.split(",");
         } catch(e) {
             c[0]=c[0].split(" ")[0];
             return c;
@@ -233,13 +230,14 @@ class ContainerError extends Error {
 
 class Tick {
     static ticks = [];
-    onTick = []; id; interval=0;delayMS=1000;
+    onTick = []; id; interval=0; delayMS=1000; isActive = false;
 
     static varsTypes = {
         onTick:"function|function[]",
         id:"string",
         interval:"number",
-        delayMS:"number"
+        delayMS:"number",
+        isActive:"boolean"
     }
     /**
      * Creates a new collection of function to be run, typically periodically.
@@ -263,12 +261,14 @@ class Tick {
      */
     start(delayMS=null) {
         if(delayMS!=null) this.delayMS=delayMS;
-        if(OuterSetup.debugPrintStatements) console.log("TK01 Beginning tick "+this.id+" with delay "+delayMS);
-        let funcsOnTick = this.onTick;
+        if(OuterSetup.debugPrintStatements) console.log("TK01 Beginning tick "+this.id+" with delay "+this.delayMS);    
+
+        this.isActive = true;
+
         let self = this;
         this.interval = setInterval(function() {
             self.tick();
-        }, delayMS!=null ? delayMS : this.delayMS)
+        }, this.delayMS);
     }
     /**
      * Calls the function(s) specified in OnTick. You can call this yourself to call the tick.
@@ -285,10 +285,10 @@ class Tick {
                 if(e instanceof TypeError) {
                     if(this.onTick[i]!=null) {
                         if(typeof this.onTick!="object") {
-                            throw new Error("Tick error on tick "+this.id+", there is an on tick item that isn't a function.(type "+typeof this.onTick[i]+" with contents "+this.onTick[i]+")");
+                            throw new TypeError("on tick "+this.id+", there is an on tick item that isn't a function.(type "+typeof this.onTick[i]+" with contents "+this.onTick[i]+")");
                         }
                     } else {
-                        throw new Error("Tick error on tick "+this.id+", there is an on tick item that isn't a function.(tick item is null)");
+                        throw new TypeError("on tick "+this.id+", there is an on tick item that isn't a function.(tick item is null)");
                     }
                 } else { 
                     throw e;
@@ -301,6 +301,8 @@ class Tick {
      */
     stop() {
         clearInterval(this.interval);
+
+        this.isActive = false;
     }
     /**
      * Returns the function(s) that will be called every tick.
@@ -362,36 +364,15 @@ var gameState = {};
  */
 function pause() {
     if(OuterSetup.debugPrintStatements) console.log("PS01 Pausing Game...");
-    for(let i=0;i<Object.keys(everything).length; i++){
-        let saveObj = everything[Object.keys(everything)[i]];
-        let saveValues = Object.keys(saveObj);
-        saveValues.forEach(key => {
-            if(SaveManager.savableKeys.includes(key) &&  eval("saveObj."+key)!=null && !SaveManager.doNotSaveList.includes(saveObj.id)){
-                gameState[saveObj.id+"_"+key]=eval("saveObj."+key);
-            }
-            
-        });
-    }
+    
+    let currentState = SaveManager.getSaveValues();
+
     for (let i = 0; i < Tick.ticks.length; i++) {
-        Tick.ticks[i].stop();
+        clearInterval(Tick.ticks[i].interval); //TODO this way of handling ticks breaks good coding conventions
     }
     isPaused = true;
     pauseBuffer = setInterval(function() {
-        Object.keys(everything).forEach(objKey => {
-            let obj = everything[objKey];
-            Object.keys(obj).forEach(key => {
-                if(SaveManager.savableKeys.includes(key) && !SaveManager.doNotSaveList.includes(obj.id)) {
-                    try {
-                        eval("obj."+key+ "= gameState["+obj.id+"_"+key+"]");
-                    } catch(e) {
-                        if(!(e instanceof ReferenceError)) {
-                            console.log("advancement made: how did we get here?")
-                            throw e;
-                        }
-                    }
-                }
-            });
-        });
+        SaveManager.setGameState(currentState);
     }, 100);
 }
 
@@ -402,7 +383,7 @@ function unpause() {
     isPaused = false;
     if(OuterSetup.debugPrintStatements) console.log("PS02 Unpausing Game...");
     Tick.ticks.forEach(element => {
-        element.start();
+        if(element.isActive) element.start();
     });
     clearInterval(pauseBuffer);
 }
@@ -426,7 +407,7 @@ class SaveManager {
     static varsTypes = {
     }
     /* If any new savable values are needed, add them here.*/ 
-    static savableKeys = ["amount", "a", "shown", "innerHTML", "tooltipHTML", "disabled", "css", "upgradeCSS", "cost", "owned", "yield", "max", "container"];
+    static savableKeys = ["amount", "a", "shown", "innerHTML", "tooltipHTML", "disabled", "css", "upgradeCSS", "cost", "owned", "yield", "max", "container", "delayMS"];
 
     static doNotSaveList = [];
     /**
@@ -439,7 +420,18 @@ class SaveManager {
     static save() {
         if(OuterSetup.debugPrintStatements) console.log("SV01 Saving game state to localStorage...");
         if(this.consoleSaveMessage) console.log("Saving game to localStorage...");
-        console.log(everything);
+        
+        let saved = this.getSaveValues();
+        localStorage.setItem("save", JSON.stringify(saved));
+        
+        if(this.consoleSaveMessage) console.log("Saved.");
+        if(OuterSetup.debugPrintStatements) console.log("SV01 Saved.");
+    }
+    /**
+     * @returns An object representing the full game save
+     * @private
+     */
+    static getSaveValues() {
         let saved = {};
         for(let i = 0; i < Object.keys(everything).length; i++) {
             const thingKey = Object.keys(everything)[i];
@@ -454,10 +446,7 @@ class SaveManager {
                 saved[thing.id] = properties;
             }
         }
-        localStorage.setItem("save", JSON.stringify(saved));
-        
-        if(this.consoleSaveMessage) console.log("Saved.");
-        if(OuterSetup.debugPrintStatements) console.log("SV01 Saved.");
+        return saved;
     }
     /**
      * If a save exists, loads the game state from localStorage.
@@ -467,9 +456,26 @@ class SaveManager {
         if(localStorage.save!=undefined) {
             if(this.consoleSaveMessage) console.log("Loading game from localStorage...");
             if(OuterSetup.debugPrintStatements) console.log("SV02 Loading game from localStorage...");
-            let i=0;
+            
             let save = JSON.parse(localStorage.save);
-            for(;i<Object.keys(save).length;i++) {
+
+            let i = this.setGameState(save);
+
+            loadBaseTick.tick();
+            if(this.consoleSaveMessage) console.log("Loaded "+i+" key/value pairs.");
+            if(OuterSetup.debugPrintStatements) console.log("SV02 Loaded "+i+" key/value pairs.");
+            
+        }
+    }
+    /**
+     * Sets the game to a certain savable state.
+     * @param {Object} save An object representing the savable state
+     * @returns The number of key/value pairs loaded in
+     * @private
+     */
+    static setGameState(save) {
+        let i=0;
+        for(;i<Object.keys(save).length;i++) {
                 let savedKey = Object.keys(save)[i];
                 let savedObj = save[savedKey];
                 try {
@@ -480,11 +486,7 @@ class SaveManager {
                     console.warn("Saved key \""+savedKey+"\" not found in current version of game.");
                 }
             }
-            loadBaseTick.tick();
-            if(this.consoleSaveMessage) console.log("Loaded "+i+" key/value pairs.");
-            if(OuterSetup.debugPrintStatements) console.log("SV02 Loaded "+i+" key/value pairs.");
-            
-    }
+        return i;
     }
     /**
      * Clears localStorage, clearing the game save.
@@ -559,8 +561,8 @@ class DisplayElement {
         this.tooltipHTML = tooltipHTML;
         loadBaseTick.addOnTick(()=>{
             this.element.className = this.css;
+            this.element.id = this.id;
             if(this.shown) this.construct(true, "called in DE constructor");
-            console.log(visualBaseTick, updateBaseTick);
         });
     }
     /**
@@ -583,6 +585,7 @@ class DisplayElement {
         tooltip.classList.add("tooltipOut");
         clearInterval(this.tooltipInterval);
         } catch (error){
+            if(OuterSetup.debugPrintStatements) console.log("DE08 removing DisplayElement '"+this.id+"' failed due to error " + error);
         }
     }
     /**
@@ -592,8 +595,7 @@ class DisplayElement {
     show() {
         if(!this.checkIfValid(this.container)) throw new ContainerError("on DisplayElement "+this.id+", the container provided is not valid.(provided name "+this.container+") This may be caused by the name of the container not existing or by passing in an HTML element as the container instead of just the element's id.");
         if(!this.checkIfValid(this.id)&&this.checkIfValid(this.container)) {
-            let f = false;
-            this.construct(f, "called in show()");
+            this.construct(false, "called in show()");
             if(this.iconURL!=null) this.icon();
             this.shown = true;
         }
@@ -717,7 +719,7 @@ class DisplayElement {
                     
                 });
             } catch(error) {
-                console.error("Tooltip Error on DisplayElement '"+this.id+"'. Attempted to attach a tooltip to a DisplayElement that hasn't been instantiated yet.(Actual error: "+error+")");
+                console.error("Tooltip Error: on DisplayElement '"+this.id+"'. Attempted to attach a tooltip to a DisplayElement that hasn't been instantiated yet.(Actual error: "+error+")");
                 //if you got here and the error is something other than along the lines of "object null has no function getClientRects" i am sorry
             }
         }
@@ -1041,14 +1043,15 @@ class Label extends DisplayElement {
      */
     construct(constructed, message="") {
         if(OuterSetup.debugPrintStatements) console.log("LB01",this.id, message);
-        if(!constructed) {
-            if(OuterSetup.debugPrintStatements) console.log("LB02 Label "+this.id+" not constructed");
-            new Label(this.id, this.container, this.innerHTML1, this.css, this.tooltipHTML, this.shown);
-            //return;
-        }
+        //BUG this part seems to just be causing issues but I know at some point it was used to fix a bug but I can't remember what that bug was. I'm leaving it in for now.
+        // if(!constructed) {
+        //     if(OuterSetup.debugPrintStatements) console.log("LB02 Label "+this.id+" not constructed");
+        //     new Label(this.id, this.container, this.innerHTML1, this.css, this.tooltipHTML, this.shown);
+        //     //return;
+        // }
         this.element.id=this.id;
-        if(this.css!="") {
-        this.element.className+=" "+this.css;
+        if(this.css!="" && !this.element.classList.contains(this.css)) {
+        this.element.classList.add(this.css);
         }
         this.element.innerHTML = this.innerHTML1;
         
@@ -1065,7 +1068,7 @@ class Label extends DisplayElement {
             if(OuterSetup.debugPrintStatements) console.log("LB05 label",this.id, "finished creation no tooltip");
     }
     /**
- * Creates a DisplayElement based on an object with the parameters of DisplayElement. <u>Note</u>: JSDocs shows the function as having all of the parameters, but the function only has the one object parameter. The rest are parameters for the object, see the example for correct usage.
+ * Creates a Label based on an object with the parameters of Label. <u>Note</u>: JSDocs shows the function as having all of the parameters, but the function only has the one object parameter. The rest are parameters for the object, see the example for correct usage.
  * @param {object} obj The object to be constructed into a Res. The following are parameters <em>for the object and not for the function itself</em>:
  * @param {string} id The Label's id.
  * @param {string} container The id of the container to add the label to.
@@ -1078,7 +1081,7 @@ class Label extends DisplayElement {
  * @param {string} resSuffix (optional) A string to add after the resource's amount, default is none.
  * @example let l = Label.O({
  * id:"label1", 
- * container:"main", 
+ * container:"main",
  * innerHTML:"Hello, World!"
  * })
  */
@@ -1155,12 +1158,20 @@ class Button extends DisplayElement {
      * Constructs a button. You should probably call show() instead of this.
      */
     construct(constructed, message="") {
-       if(OuterSetup.debugPrintStatements) console.log("BT01",this.id, constructed, message);
+       if(OuterSetup.debugPrintStatements) console.log("BT01",this.id, constructed, message, this.element.classList, this.css);
         this.element.id=this.id;
-        this.element.className="defaultInteriorButtonCSS "+this.css;
+        let classList = this.element.classList;
+        if(!classList.contains("defaultInteriorButtonCSS")) this.element.classList.add("defaultInteriorButtonCSS");
+
+        if(
+            !classList.contains(this.css.split()[0]) &&  //BUG not sure if this [0] works in every case
+            this.css != ""
+        ) this.css.split(" ").forEach((cssClass) => {
+            this.element.classList.add(cssClass);
+        });
 
         //this allows css to be properly kept when loadBaseTick is triggered
-        this.css = "defaultInteriorButtonCSS " + this.css;
+        this.css = this.element.className;
         let self = this;
         let actions2 = self.actions;
         this.element.onclick = function() {
@@ -1186,10 +1197,12 @@ class Button extends DisplayElement {
         }
         let elem = this.get;
         elem.addEventListener("mousedown", (e) => {
-            elem.className="defaultInteriorButtonCSS "+this.css+" defaultMouseDown";
+            elem.classList.add("defaultMouseDown");
+            elem.classList.remove("defaultMouseUp");
         });
         this.get.addEventListener("mouseup", (e) => {
-            elem.className="defaultInteriorButtonCSS "+this.css+" defaultMouseUp";
+            elem.classList.add("defaultMouseUp");
+            elem.classList.remove("defaultMouseDown");
         });
     }   
     /**
@@ -1739,6 +1752,9 @@ class Toast {
             toast.get.style="transform: translate(0px, "+this.toastOffset+"px);";
         }
         toast.get.className = "toastCSS " + this.optionalCSS
+        if(!classList.contains("toastCSS")) this.element.classList.add("toastCSS");
+        if(!classList.contains("") && this.optionalCSS != "") this.element.classList.add(this.optionalCSS);
+        
         this.numToasts++;
         this.toastOffset+=toast.get.offsetHeight;
         let self  = this;
@@ -1934,7 +1950,7 @@ class AchievementGroup extends Label{
  * @param {string} toastCSS (optional) The CSS class for the AchievementGroup's toast, defaults to none
  * @param {string} toastPosition (optional) The position for the achievement toasts, defaults to bottom
  * @ You can also include another object with any number as its key(as long as that number is unique) to create achievements inside the AchievementGroup. Each of those have the following parameters:
- * 
+ * //TODO
  */
 function AchievementGroupO(obj) {
     let disp = new AchievementGroup(obj.id,obj.container ? obj.container:"infoAchievementBox", obj.toastContainer, obj.containerCSS?obj.containerCSS:"", obj.achievementCSS?obj.achievementCSS:"", obj.toastCSS?obj.toastCSS:"",obj.toastPosition?obj.toastPosition:"bottom");
@@ -1953,19 +1969,19 @@ class InfoMenu {
         }, "", false);
         let infoBackground = new Label("infoBackground", container, "", "infoBackground", "", false);
         let achievementBackground = new Label("infoAchievementBox", container, "Achievements", "achievementBackground", "", false);
-        let infoTextElement = new Label("infoText", "infoBackground", infoText + "<br><br>This game was created using <b>ScrambledIdle</b>. Click <a href=\"https://example.com\" target=\"_blank\" style=\"color:lightblue;\">here</a> to check it out!", "infoText", optionalCSS, false);
+        let infoTextElement = new Label("infoText", "infoBackground", infoText + "<br><br>This game was created using <b>ScrambledIdle</b>. Click <a href=\"https://https://github.com/ScrambledRubiks/scrambled-idle\" target=\"_blank\" style=\"color:lightblue;\">here</a> to check it out!", "infoText", optionalCSS, false);
         let infoCloseButton = new Button("infoCloseButtion", "infoBackground", "x", "infoClose", function() {
             infoGroup.hide();
             unpause();
         }, "", false);
-        let saveClearButton = new Button("saveClearButton", "infoBackground", "Wipe save", "", function() {
+        let saveClearButton = new Button("saveClearButton", "infoBackground", "Wipe save", "saveClearButton", function() {
             SaveManager.clear();
             location.reload();
         }, "Wipe the current save and reload the page. This cannot be undone!", false);
         let saveButton = new Button("saveButton", "infoBackground", "Save game", "", function() {
             SaveManager.save();
         }, "Save the game.", false);
-        let infoGroup = new DisplayGroup([infoBackground, bigBackground, infoCloseButton, saveClearButton, saveButton, infoTextElement]);
+        let infoGroup = new DisplayGroup([infoBackground, bigBackground, infoCloseButton,  saveButton, saveClearButton, infoTextElement]);
         if(achievementGroup!=null) {
             infoGroup.add(achievementBackground);
             infoGroup.add(achievementGroup);

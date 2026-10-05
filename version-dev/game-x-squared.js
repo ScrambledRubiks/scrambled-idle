@@ -14,7 +14,7 @@ export {Game};
     OuterSetup.gameClassGlobalScope = true
 
     /**
-     * If true, the CSS will be defined in this file rather than in the separate default.css and custom.css files. If you're hosting your game on the RubiksIdle website, this needs to be set to true and your CSS has to be in this file, although it is recommended that you have your CSS in the separate files otherwise.
+     * If true, the CSS will be defined in this file rather than in the separate default.css and custom.css files. If you're hosting your game on the ScrambledIdle website, this needs to be set to true and your CSS has to be in this file, although it is recommended that you have your CSS in the separate files otherwise.
      */
     OuterSetup.useGameJsCSS = false
     OuterSetup.pastebinDataSource = true
@@ -47,6 +47,9 @@ export {Game};
 }
 class Game {
 GameElements() {
+    this.updateBaseTick = updateBaseTick;
+    this.visualBaseTick = visualBaseTick;
+
     let achi = new AchievementGroup("achi", "infoAchievementBox", false, "main");
     let info = new InfoMenu("infoContainer", `
         You're playing X Squared by ScrambledRubiks, a minimalist idle game about research and math.<br>
@@ -136,11 +139,13 @@ GameElements() {
           <br>(02/23) Patch # 0.3 Initial public prerelease!
           </dd>
           For the sake of not providing misinformation, Optimization 2 is not a real optimization method.
-          `, achi);
+          `, /*achi*/);
 
 
 //Ticks
     let autosaveTick = new Tick("autosaveTick",function() {SaveManager.save()});
+    this.autosaveTick = autosaveTick;
+    this.SaveManager = SaveManager;
     let graphUpdateTick = new Tick("graphUpdateTick", () => {
         calculator.setMathBounds({
             left:-1,
@@ -158,7 +163,7 @@ GameElements() {
 
     let t = new Toast("toast", "toast", "bottom");
 
-    achi.a("test", "test", "", ()=>{return true})
+    //achi.a("test", "test", "", ()=>{return true})
 
 //Resources
     let x = ResO({
@@ -367,7 +372,7 @@ GameElements() {
     makePapr("Least-Efficent Splines", ()=>{return y.max>=20000}, 50000, 10, "Splines are typically meant to connect points smoothly, such as connecting a polynomial's zeroes to find that polynomial. It was rather surprising to find that no one had yet tried applying the principle of bogosort to this problem wherein a smooth curve is randomly drawn until it happens to hit the points required.");
     makePapr("Inverse-Inverse Kinematics Problems", ()=>{return y.max>=80000}, 300000, 17, "These are somehow different from non-inverse kinematics problems. Well, probably. Maybe. It's not totally clear, but it can certainly be tried to treat them as such.");
     makePapr("Supernatural Logarithms", ()=>{return y.max>800000}, 10000000, 24, "As calculus-based extension of the paranormal distribution, these inverse exponentials carry the property of setting Euler's constant <i>e</i> to the derived ghost of a long-forgotten busy beaver algorithm. The general effect is that both Euler and Newton can be added to the list of long-passed mathematicians research has turned into rather disgruntled participants in modern research.");
-    makePapr("Puzzle Cube Theorem of Impossibility", ()=>{return upgrades.uFromId("papr7").owned && y>=7000000}, 17000000, 38, "This paper postulates the idea that, once scrambled, an ordinary 3x3 puzzle cube is mathematically impossible to solve, and that anyone who claims otherwise is a fraud. While not the strongest proof, it will certainly make enough waves within some internet communities that the research will prove its worth.");
+    makePapr("Rubik's Cube Theorem of Impossibility", ()=>{return upgrades.uFromId("papr7").owned && y>=7000000}, 17000000, 38, "This paper postulates the idea that, once scrambled, a Rubik's cube is mathematically impossible to solve, and that anyone who claims otherwise is a fraud. While not the strongest proof, it will certainly make enough waves within some internet communities that the research will prove its worth.");
     makePapr("Email-Based Energy", ()=>{return upgrades.uFromId("papr8").owned}, 20000000, 56, "Proposal for a prototype energy source fueled, rather inexplicably, by the outrage contained in certain emails discussing so-called 'provably wrong' opinions.");
 
     //Computing

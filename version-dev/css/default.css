@@ -216,3 +216,12 @@
     left: 37%;
     right: 37%;
   }
+  .saveClearButton {
+    color:white;
+    background-color: rgb(110, 0, 0);
+    margin-left:50px;
+  }
+  .saveClearButton:hover {
+    color:white;
+    background-color: rgb(110, 0, 0);
+  }
