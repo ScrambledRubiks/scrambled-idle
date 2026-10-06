@@ -17,7 +17,7 @@ class OuterSetup {
     static pastebinDataSource = true;
     static showPasteExpiryWarning = true;
     static gameElementsGlobalScope = true;
-    
+    static warnWhenSettingPropertiesUnshown = true;
 }
 if(OuterSetup.debugPrintStatements) console.log("000 debugPrintStatements set to true");
 
@@ -70,7 +70,7 @@ class TypeChecker {
                     try {
                     varsKeys = Object.keys(varsTypes);
                     }catch(e) {
-                        console.log(e);
+                        if(OuterSetup.debugPrintStatements) console.log("CA01 caught error: " + e);
                         throw new Error(`when type-checking class ${className}, class does not have a static varsTypes variable.`);
                     }
                     Object.keys(everything).forEach(objKey => {
@@ -165,6 +165,7 @@ class TypeChecker {
                                 }
                             }
                         } catch(e) {
+                            if(OuterSetup.debugPrintStatements) console.log("CA02 caught error: " + e);
                             console.error("Something has gone wrong with TypeChecker on object \""+objKey+"\".");
                             if(!(e instanceof TypeError)) {
                                 console.log(everything[objKey]);
@@ -193,6 +194,7 @@ class TypeChecker {
             toReturn += ","+this.findInheritancePath(c[1]);
             return toReturn.split(",");
         } catch(e) {
+            if(OuterSetup.debugPrintStatements) console.log("CA03 caught error: " + e);
             c[0]=c[0].split(" ")[0];
             return c;
         }
@@ -282,10 +284,13 @@ class Tick {
             try {
                 this.onTick[i]();
             } catch(e) {
+                if(OuterSetup.debugPrintStatements) console.log("CA04 caught error: " + e);
                 if(e instanceof TypeError) {
                     if(this.onTick[i]!=null) {
                         if(typeof this.onTick!="object") {
                             throw new TypeError("on tick "+this.id+", there is an on tick item that isn't a function.(type "+typeof this.onTick[i]+" with contents "+this.onTick[i]+")");
+                        } else {
+                            throw e;
                         }
                     } else {
                         throw new TypeError("on tick "+this.id+", there is an on tick item that isn't a function.(tick item is null)");
@@ -483,6 +488,7 @@ class SaveManager {
                         everything[savedKey][key] = savedObj[key];
                     });
                 } catch(e) {
+                    if(OuterSetup.debugPrintStatements) console.log("CA05 caught error: " + e);
                     console.warn("Saved key \""+savedKey+"\" not found in current version of game.");
                 }
             }
@@ -719,6 +725,7 @@ class DisplayElement {
                     
                 });
             } catch(error) {
+                if(OuterSetup.debugPrintStatements) console.log("CA06 caught error: " + error);
                 console.error("Tooltip Error: on DisplayElement '"+this.id+"'. Attempted to attach a tooltip to a DisplayElement that hasn't been instantiated yet.(Actual error: "+error+")");
                 //if you got here and the error is something other than along the lines of "object null has no function getClientRects" i am sorry
             }
@@ -760,11 +767,28 @@ class DisplayElement {
         //TODO fix this
     }
     /**
+     * @param {function} action
+     * @param {string} message
+     * @private
+     */
+    catchErrorIfNotShown(action, message) {
+        try {
+            action();
+        } catch(e) {
+            if(OuterSetup.debugPrintStatements) console.log("CA16 on DisplayElement " + this.id + ", caught error: " + e);
+            if(!(e instanceof TypeError)) throw e;
+            if(OuterSetup.warnWhenSettingPropertiesUnshown) console.warn(message);
+        }
+    }
+
+    /**
      * Returns the DisplayElement's HTML element.
      */
     get get() {
         if(OuterSetup.debugPrintStatements) console.log("DE05 getting document element for DisplayElement '"+this.id+"'");
-        return document.getElementById(this.id);
+        let element = document.getElementById(this.id);
+        if(element == null) element = this.element;
+        return element;
     }
     /**
      * Returns the DisplayElement's inner HTML in a string.
@@ -778,7 +802,10 @@ class DisplayElement {
      */
     set innerHTML(html) {
         if(OuterSetup.debugPrintStatements) console.log("DE06 setting innerHTML for DisplayElement '"+this.id+"'");
-        this.get.innerHTML = html;
+        this.catchErrorIfNotShown(() => {
+            this.get.innerHTML = html;
+        }, "Trying to set the innerHTML of the DisplayElement " + this.id + ", which isn't shown on the document")
+        
     }
     /**
      * Sets the DisplayElement's tooltip HTML. If the DisplayElement does not have a tooltip, it will be created.
@@ -1063,6 +1090,7 @@ class Label extends DisplayElement {
                 if(OuterSetup.debugPrintStatements) console.log(this.id, "LB03 finished adding tooltip");
             }
             } catch(e) {
+                if(OuterSetup.debugPrintStatements) console.log("CA07 caught error: " + e);
                 throw new ContainerError("Tried to add the label " + this.id+" to the container "+this.container+" and failed.");
             }
             if(OuterSetup.debugPrintStatements) console.log("LB05 label",this.id, "finished creation no tooltip");
@@ -1172,6 +1200,7 @@ class Button extends DisplayElement {
 
         //this allows css to be properly kept when loadBaseTick is triggered
         this.css = this.element.className;
+
         let self = this;
         let actions2 = self.actions;
         this.element.onclick = function() {
@@ -1193,6 +1222,7 @@ class Button extends DisplayElement {
             this.tooltip_able();
         }
         } catch(error) {
+            if(OuterSetup.debugPrintStatements) console.log("CA08 caught error: " + error);
             throw new ContainerError("when trying to create the DisplayElement \""+this.id+"\", attempted to place the DisplayElement in a container that does not exist. "+"(actual error: "+error+")")
         }
         let elem = this.get;
@@ -1210,14 +1240,19 @@ class Button extends DisplayElement {
      */
     disable() {
         if(OuterSetup.debugPrintStatements) console.log("BT03 disabling button '"+ this.id+"'");
-        this.get.disabled = true;
+        this.catchErrorIfNotShown(() => {
+            this.get.disabled = true;
+        }, "Attempted to disable the Button " + this.id + ", which is not shown.")
+        
     }
     /**
      * Enables the button.
      */
     enable() {
         if(OuterSetup.debugPrintStatements) console.log("BTO4 enabling button '"+ this.id+"'");
-        this.get.disabled = false;
+         this.catchErrorIfNotShown(() => {
+            this.get.disabled = false;
+        }, "Attempted to enable the Button " + this.id + ", which is not shown.")
     }
     /**
  * Creates a Button based on an object with the parameters of Button.
@@ -1437,6 +1472,7 @@ class UpgradeGroup extends Label {
         try {
             return eval("this."+id);
         } catch(e) {
+            if(OuterSetup.debugPrintStatements) console.log("CA09 caught error: " + e);
             console.error("Upgrade Error: Attempted and failed to find the upgrade \""+id+"\". Any TypeErrors preceding this error are likely caused by this.");
         }
         
@@ -1451,6 +1487,7 @@ class UpgradeGroup extends Label {
         try {
         this.uFromId(id).tooltip = html
         } catch(error) {
+            if(OuterSetup.debugPrintStatements) console.log("CA10 caught error: " + error);
             throw new Error("Tooltip Error: Tried to place a tooltip on the upgrade "+id+", which does not exist.");
         }
     }
@@ -1466,6 +1503,7 @@ class UpgradeGroup extends Label {
          try {
         this.uTooltip(id,"<b><u>"+upgr.name+"</u></b><br>"+" "+upgr.cost+" "+upgr.currency.name+"<br>"+flavor);
         } catch(error) {
+            if(OuterSetup.debugPrintStatements) console.log("CA11 caught error: " + error);
             if(error.message.includes("name")) {
                 if(effect==null) {
                     throw new Error("Upgrade Tooltip Error: Attempted to attach a name/price/flavor tooltip to the upgrade \""+id+"\" that does not have a numeric price. To set a name/effect/flavor tooltip, add some string outling your effect as the third parameter.")
@@ -1581,7 +1619,7 @@ class Building extends Button{
             self.a = self.amount;
             if(self.a>self.max) self.max=self.a;
             //TODO make work with icons
-            self.get.innerHTML = name+": "+self.amount;
+            self.innerHTML = name+": "+self.amount;
             if(self.hasIcon) self.icon();
             if(OuterSetup.debugPrintStatements) console.log("BD01 attempting to purchase building with id", self.id);
                 if (self.currency.amount>=self.cost) {
@@ -1593,7 +1631,7 @@ class Building extends Button{
                     self.disable();
                     self.tooltip = "<b><u>"+self.name+"</u></b><br><div style=\"color:red; display:inline;\">"+" "+Res.numberPrettify(self.cost)+" "+self.currency.name+"</div><br>"+self.flavor;
                 }
-                self.get.innerHTML = name+": "+self.amount;
+                self.innerHTML = name+": "+self.amount;
                 if(self.hasIcon) self.icon();
         }]);
         Object.defineProperty(everything, id, {
@@ -1665,6 +1703,7 @@ class BuildingGroup extends Label {
             try {
                 return eval("this."+id);
             } catch(e) {
+                if(OuterSetup.debugPrintStatements) console.log("CA12 caught error: " + e);
                 console.error("Building Error: Attempted and failed to find the building \""+id+"\". Any TypeErrors preceding this error are likely caused by this.");
             }
     }
@@ -1751,9 +1790,12 @@ class Toast {
         } else if(this.position=="top") {
             toast.get.style="transform: translate(0px, "+this.toastOffset+"px);";
         }
-        toast.get.className = "toastCSS " + this.optionalCSS
-        if(!classList.contains("toastCSS")) this.element.classList.add("toastCSS");
-        if(!classList.contains("") && this.optionalCSS != "") this.element.classList.add(this.optionalCSS);
+        let classList = toast.get.classList;
+
+        console.log(classList, !classList.contains("toastCSS"));
+        if(!classList.contains("toastCSS")) toast.element.classList.add("toastCSS");
+        if(!classList.contains(this.optionalCSS) && this.optionalCSS != "") toast.element.classList.add(this.optionalCSS);
+
         
         this.numToasts++;
         this.toastOffset+=toast.get.offsetHeight;
@@ -1818,11 +1860,13 @@ class Achievement extends Label{
                 `
                 , req());
         } catch(e) {
+            if(OuterSetup.debugPrintStatements) console.log("CA13 caught error: " + e);
             if(!e instanceof ContainerError) throw e;
             visualBaseTick.addOnTick(()=>{
                 try {
                     this.show(); //TODO this really isn't a good solution
                 } catch(err) {
+                    if(OuterSetup.debugPrintStatements) console.log("CA14 caught error: " + err);
                     if(!err instanceof ContainerError) throw e;
                 }
             });
@@ -1890,7 +1934,6 @@ class AchievementGroup extends Label{
      * @extends Label
      */
     constructor(id,container="infoAchievementBox",shown=false, toastContainer=null, containerCSS="",achievementCSS="defaultButtonCSS",toastCSS="",toastPosition="bottom") {
-            console.log(shown);
             super(id,container,"",containerCSS, "",shown);
             let self = this;
             
@@ -1903,6 +1946,7 @@ class AchievementGroup extends Label{
                     });
                     if(OuterSetup.debugPrintStatements) console.log("AG01 showing achievements");
                 } catch(e) {
+                    if(OuterSetup.debugPrintStatements) console.log("CA15 caught error: " + e);
                 }
             }])
         this.achievementExists=true;

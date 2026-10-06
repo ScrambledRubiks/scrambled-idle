@@ -6,12 +6,17 @@ export {Game};
     /**
      * If true, prints out an absolute torrent of print statements, almost acting like a live stack trace of everything occuring in your game. As there will probably be thousands of print statements per few seconds, this is not recommended except in cases of debugging where some of that information is necessary.
      */
-    OuterSetup.debugPrintStatements = false
+    OuterSetup.debugPrintStatements = true
 
     /**
      * If true, the Game class will be accessible as G in the global scope, meaning that (among other things) you can access some variables using the dev console. For example, to access the variable 'foo' from the dev console, this would be true, and after foo's declaration you would include 'this.foo = foo'.
      */
     OuterSetup.gameClassGlobalScope = true
+
+    /**
+     * If true, a warning will be put in the console if you try to set certain properties of a DisplayElement that doesn't exist on the page. This either means the DisplayElement is hidden, or it doesn't exist at all.
+     */
+    OuterSetup.warnWhenSettingPropertiesUnshown = false;
 
     /**
      * If true, the CSS will be defined in this file rather than in the separate default.css and custom.css files. If you're hosting your game on the ScrambledIdle website, this needs to be set to true and your CSS has to be in this file, although it is recommended that you have your CSS in the separate files otherwise.
@@ -169,7 +174,7 @@ GameElements() {
     let x = ResO({
         name:"x",
         id:"x",
-        initVal:0
+        initVal:25
     });
     this.x = x;
     //x.yield = 100;

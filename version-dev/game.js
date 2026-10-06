@@ -14,6 +14,11 @@ export {Game};
     OuterSetup.gameElementsGlobalScope = true
 
     /**
+     * If true, a warning will be put in the console if you try to set certain properties of a DisplayElement that doesn't exist on the page. This either means the DisplayElement is hidden, or it doesn't exist at all.
+     */
+    OuterSetup.warnWhenSettingPropertiesUnshown = true;
+
+    /**
      * If true, the type checker will run on every game element to ensure type safety and help with debugging(or be needlessly annoying depending on your perspecive on static typing).
      */
     TypeChecker.doTypeChecking = true
@@ -37,6 +42,7 @@ export {Game};
      * A boolean to set whether or not to print a save message to the console.
      */
     SaveManager.consoleSaveMessage = true
+    
 
 }
 class Game {
